@@ -1,0 +1,86 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Draft Companion</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <button id="toggleSidebar">
+        <span class="icon">☰</span><span class="text">Menu</span>
+    </button>
+    <div id="overlay"></div>
+    <aside id="sidebar">
+        <nav>
+            <ul>
+                <li class="menu-item" onclick="showPage('home')">Homepage</li>
+                <li class="menu-item" onclick="showPage('player-news')">Player News</li>
+                <li class="menu-item" onclick="showPage('draft')">Live Draft</li>
+                <li class="menu-item" onclick="showPage('SleeperLeague')">Your League</li>
+                <li class="menu-item" onclick="showPage('rankings')">Player Rankings</li>
+                <li class="menu-item" onclick="showPage('trending')">Trending</li>
+                <li class="menu-item" onclick="showPage('depth')">Depth Charts</li>
+                <li class="menu-item" onclick="showPage('about')">About</li>
+            </ul>
+        </nav>
+    </aside>
+    
+    <div id="content-wrapper">
+        <header>
+            <h1>Draft Companion</h1>
+        </header>
+        <div id="container">
+            <main id="main-content">
+                <section id="home">
+                    <h2>Welcome to the Fantasy Football Draft Assistant</h2>
+                    <p>This tool helps you make smarter draft decisions by showing you available players and keeping track of your team during a live fantasy football draft.</p>
+                    <p>Click the menu button (☰) to access the Live Draft or Player News pages.</p>
+                </section>
+
+                <section id="player-news" class="hidden">
+                    <h2>Latest Player News</h2>
+                    <ul id="news-list">
+                        <!-- Player news items will go here -->
+                    </ul>
+                </section>
+                
+                <section id="draft" class="hidden">
+                    <h2>Available Players</h2>
+                    <ul id="players"></ul>
+    
+                    <h2>Your Team</h2>
+                    <ul id="roster"></ul>
+                </section>
+
+                <section id="SleeperLeague" class="hidden">
+                    <h2>Your League</h2>
+                    <p>Only avaliable for Sleeper leagues, coming soon...</p>
+                </section>
+    
+                <section id="rankings" class="hidden">
+                    <h2>Player Rankings</h2>
+                    <p>Coming soon...</p>
+                </section>
+
+                <section id="trending" class="hidden">
+                    <h2>Trending Players</h2>
+                    <p>Coming soon...</p>
+                </section>
+
+                <section id="depth" class="hidden">
+                    <h2>Depth Charts</h2>
+                    <p>Coming soon...</p>
+                </section>
+
+                <section id="about" class="hidden">
+                    <h2>About this Page</h2>
+                    <p>Coming soon...</p>
+                </section>
+            </main>
+        </div>
+    </div>    
+    <script src="script.js"></script>
+</body>
+</html>
