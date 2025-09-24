@@ -1,35 +1,5 @@
-
-const players = [
-    { name: "Christian McCaffrey", position: "RB" },
-    { name: "Justin Jefferson", position: "WR" },
-    { name: "Patrick Mahomes", position: "QB" },
-    { name: "Travis Kelce", position: "TE" },
-    { name: "Austin Ekeler", position: "RB" },
-];
-
 const playerList = document.getElementById('players');
 const roster = document.getElementById('roster');
-
-function loadPlayers() {
-    playerList.innerHTML = '';
-    players.forEach((player, index) => {
-        const li = document.createElement('li');
-        li.textContent = `${player.name} - ${player.position}`;
-        li.addEventListener('click', () => {
-            draftPlayer(index);
-        });
-        playerList.appendChild(li);
-    });
-}
-
-function draftPlayer(index) {
-    const player = players[index];
-    const li = document.createElement('li');
-    li.textContent = `${player.name} - ${player.position}`;
-    roster.appendChild(li);
-    players.splice(index, 1);
-    loadPlayers();
-}
 
 function showPage(id) {
     // Hide all sections
@@ -80,30 +50,6 @@ menuItems.forEach(item => {
         contentWrapper.classList.remove('blurred');
     });
 });
-
-function loadPlayerNews() {
-    const newsList = document.getElementById('news-list');
-    newsList.innerHTML = '<li>Loading news...</li>'; // Show a loading message
-
-    fetch('news.json')
-    .then(response => response.json())
-    .then(data => {
-        const newsList = document.getElementById('news-list');
-        newsList.innerHTML = '';
-
-        data.articles.forEach(item => {
-            const li = document.createElement('li');
-            li.classList.add('news-card');
-            li.innerHTML = `<strong>${item.title}</strong><br>${item.body}`;
-            newsList.appendChild(li);
-        });
-    })
-    .catch(error => {
-        console.error('Error fetching player news:', error);
-        document.getElementById('news-list').innerHTML = '<li>Failed to load news.</li>';
-    });
-
-}
 
 
 

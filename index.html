@@ -16,12 +16,12 @@
         <nav>
             <ul>
                 <li class="menu-item" onclick="showPage('home')">Homepage</li>
-                <li class="menu-item" onclick="showPage('player-news')">Player News</li>
-                <li class="menu-item" onclick="showPage('draft')">Live Draft</li>
-                <li class="menu-item" onclick="showPage('SleeperLeague')">Your League</li>
-                <li class="menu-item" onclick="showPage('rankings')">Player Rankings</li>
-                <li class="menu-item" onclick="showPage('trending')">Trending</li>
-                <li class="menu-item" onclick="showPage('depth')">Depth Charts</li>
+                <li class="menu-item" onclick="showPage('rosters')">Rosters</li>
+                <li class="menu-item" onclick="showPage('drafts')">Previous Drafts</li>
+                <li class="menu-item" onclick="showPage('Matchups')">This Weeks Matchups</li>
+                <li class="menu-item" onclick="showPage('Standings')">League Standings</li>
+                <li class="menu-item" onclick="showPage('Transactions')">Transactions</li>
+                <li class="menu-item" onclick="showPage('History')">League History</li>
                 <li class="menu-item" onclick="showPage('about')">About</li>
             </ul>
         </nav>
@@ -29,49 +29,38 @@
     
     <div id="content-wrapper">
         <header>
-            <h1>Draft Companion</h1>
+            <h1>The Lads FF</h1>
         </header>
         <div id="container">
             <main id="main-content">
                 <section id="home">
-                    <h2>Welcome to the Fantasy Football Draft Assistant</h2>
-                    <p>This tool helps you make smarter draft decisions by showing you available players and keeping track of your team during a live fantasy football draft.</p>
-                    <p>Click the menu button (☰) to access the Live Draft or Player News pages.</p>
+                    <h2>Welcome to the home of The Lads' fantasy football league</h2>
+                    <p>This page allows you to view both current and past information about our league.</p>
+                    <p>Click the menu button (☰) to access the different information from the sleeper APIs</p>
                 </section>
 
-                <section id="player-news" class="hidden">
-                    <h2>Latest Player News</h2>
-                    <ul id="news-list">
-                        <!-- Player news items will go here -->
-                    </ul>
+                <section id="rosters" class="hidden">
+                    <h2>Rosters</h2>
                 </section>
                 
-                <section id="draft" class="hidden">
-                    <h2>Available Players</h2>
-                    <ul id="players"></ul>
-    
-                    <h2>Your Team</h2>
-                    <ul id="roster"></ul>
+                <section id="drafts" class="hidden">
+                    <h2>Previous Drafts</h2>
                 </section>
 
-                <section id="SleeperLeague" class="hidden">
-                    <h2>Your League</h2>
-                    <p>Only avaliable for Sleeper leagues, coming soon...</p>
+                <section id="Matchups" class="hidden">
+                    <h2>This Weeks Matchups</h2>
                 </section>
     
-                <section id="rankings" class="hidden">
-                    <h2>Player Rankings</h2>
-                    <p>Coming soon...</p>
+                <section id="Standings" class="hidden">
+                    <h2>League Standings</h2>
                 </section>
 
-                <section id="trending" class="hidden">
-                    <h2>Trending Players</h2>
-                    <p>Coming soon...</p>
+                <section id="Transactions" class="hidden">
+                    <h2>Recent Transactions</h2>
                 </section>
 
-                <section id="depth" class="hidden">
-                    <h2>Depth Charts</h2>
-                    <p>Coming soon...</p>
+                <section id="History" class="hidden">
+                    <h2>League History</h2>
                 </section>
 
                 <section id="about" class="hidden">
