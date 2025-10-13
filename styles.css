@@ -221,3 +221,42 @@ aside nav ul li.active {
   margin-right: 6px;
   background: #fafafa;
 }
+
+/* Transactions redesign */
+.tx-card { padding: 14px 16px; }
+.tx-header {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+}
+.tx-icon { font-size: 1.2rem; }
+.tx-title { font-weight: 700; }
+.tx-meta { color: #777; font-size: 0.9rem; margin-top: 6px; }
+
+.tx-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px;
+}
+.tx-team {
+  background: #fafafa; border: 1px solid #eee; border-radius: 8px; padding: 10px;
+}
+.tx-team-name { font-weight: 600; margin-bottom: 6px; display: block; }
+
+.pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.pill {
+  display: inline-block; padding: 3px 10px; border-radius: 999px; border: 1px solid #e5e5e5;
+  background: #fff; font-size: 0.9rem;
+}
+.pill small { opacity: 0.7; margin-left: 6px; }
+
+.pill.gain { border-color: #d0f1d6; background: #f0faf2; }
+.pill.loss { border-color: #ffd7d7; background: #fff2f2; }
+.pill.pick { border-style: dashed; }
+
+.tx-section-label {
+  font-size: 0.85rem; color: #666; margin: 6px 0 2px;
+}
+
+/* Single-owner transactions (FA / Waiver) */
+.tx-single { margin-top: 6px; }
+.tx-badges { display: flex; gap: 8px; align-items: center; }
+.tx-badge {
+  font-size: 0.75rem; padding: 2px 8px; border-radius: 999px; background: #eee; border: 1px solid #ddd;
+}
