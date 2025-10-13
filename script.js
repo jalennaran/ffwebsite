@@ -182,7 +182,12 @@ async function loadMatchups() {
   const root = document.getElementById('matchups-root');
   root.textContent = 'Loading matchups...';
   try {
-    const [week, { ownerByRoster }] = await Promise.all([getCurrentWeek(), getLeagueBundle()]);
+    const [week, { ownerByRoster }, players] = await Promise.all([
+      getCurrentWeek(),
+      getLeagueBundle(),
+      getPlayersMap()
+    ]);
+
     const matchups = await jget(`/league/${LEAGUE_ID}/matchups/${week}`);
     const byId = {};
     matchups.forEach(m => { (byId[m.matchup_id] ||= []).push(m); });
@@ -193,17 +198,99 @@ async function loadMatchups() {
       const aOwn = ownerByRoster[a?.roster_id], bOwn = ownerByRoster[b?.roster_id];
       const nameA = (aOwn?.metadata?.team_name) || aOwn?.display_name || `Roster ${a?.roster_id ?? '?'}`;
       const nameB = (bOwn?.metadata?.team_name) || bOwn?.display_name || (b ? `Roster ${b.roster_id}` : 'BYE');
-      const card = el('div', { class: 'news-card' });
-      card.append(
-        el('strong', { html: `Week ${week} · ${nameA} vs ${nameB}` }),
-        el('p', { html: `<b>${(a?.points ?? 0).toFixed(2)}</b> — <b>${(b?.points ?? 0).toFixed(2)}</b>` })
+
+      // Card
+      const card = el('div', { class: 'news-card match-card' });
+
+      // Header (click to expand)
+      const header = el('div', { class: 'match-header', role: 'button', tabindex: '0' });
+      header.append(
+        el('div', { class: 'match-title', html: `Week ${week} · ${nameA} <span style="opacity:.6">vs</span> ${nameB}` }),
+        el('div', { class: 'match-score', html: `${(a?.points ?? 0).toFixed(2)} — ${(b?.points ?? 0).toFixed(2)}` }),
       );
+      card.append(header);
+
+      // Body (hidden by default)
+      const body = el('div', { class: 'match-body' });
+      const grid = el('div', { class: 'match-grid' });
+      grid.append(
+        buildTeamCol(a, nameA, players),
+        buildTeamCol(b, nameB, players)
+      );
+      body.append(grid);
+      card.append(body);
+
+      // Toggle logic
+      const toggle = () => body.classList.toggle('open');
+      header.addEventListener('click', toggle);
+      header.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+
       root.append(card);
     });
+
     if (!root.children.length) root.textContent = `No matchups found for Week ${week}.`;
-  } catch (e) { root.textContent = 'Failed to load matchups.'; console.error(e); }
+
+  } catch (e) {
+    console.error(e);
+    root.textContent = 'Failed to load matchups.';
+  }
 }
 
+// Helper: build a team column with Starters + Bench
+function buildTeamCol(entry, teamName, players) {
+  const col = el('div', { class: 'team-col' });
+  col.append(el('span', { class: 'team-name', html: teamName }));
+
+  if (!entry || !entry.roster_id) {
+    col.append(el('div', { class: 'pmeta', html: 'No data (BYE or missing).' }));
+    return col;
+  }
+
+  const starters = (entry.starters || []).filter(Boolean);        // array of player_ids
+  const all = (entry.players || []).filter(Boolean);               // all active players in matchup
+  const bench = all.filter(pid => !starters.includes(pid));        // bench = all - starters
+  const ppts = entry.players_points || {};                         // { player_id: points }
+
+  // Starters
+  col.append(el('div', { class: 'group-title', html: 'Starters' }));
+  const startersWrap = el('div', { class: 'group' });
+  starters.forEach(pid => startersWrap.append(playerRow(pid, ppts[pid] ?? 0, players)));
+  if (!starters.length) startersWrap.append(el('div', { class: 'pmeta', html: '—' }));
+  col.append(startersWrap);
+
+  // Bench
+  col.append(el('div', { class: 'group-title', html: 'Bench' }));
+  const benchWrap = el('div', { class: 'group' });
+  bench.forEach(pid => benchWrap.append(playerRow(pid, ppts[pid] ?? 0, players)));
+  if (!bench.length) benchWrap.append(el('div', { class: 'pmeta', html: '—' }));
+  col.append(benchWrap);
+
+  return col;
+}
+
+// Helper: one player line
+function playerRow(pid, pts, players) {
+  const p = players[pid] || {};
+  const row = el('div', { class: 'player-row' });
+
+  // POS/Team pill
+  row.append(el('div', {},
+    el('span', { class: 'pos', html: p.pos || '?' })
+  ));
+
+  // Name + meta
+  const name = p.fn || pid;
+  const meta = [p.team].filter(Boolean).join(' · ');
+  row.append(el('div', {},
+    el('div', { html: name }),
+    el('div', { class: 'pmeta', html: meta })
+  ));
+
+  // Points
+  row.append(el('div', { class: 'pts', html: Number(pts).toFixed(2) }));
+
+  return row;
+}
 
 // transactions page
 
