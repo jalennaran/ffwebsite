@@ -58,6 +58,18 @@
                 <section id="standings" class="hidden">
                     <h2>League Standings</h2>
                     <div id="standings-root"></div>
+                    <h3>Power Rankings</h3>
+                    <div class="pr-controls">
+                    <label for="pr-metric">Sort by:</label>
+                    <select id="pr-metric">
+                        <option value="power">Power Score (default)</option>
+                        <option value="wins">Wins</option>
+                        <option value="points">Total Points</option>
+                    </select>
+                    <button id="pr-refresh" class="pr-btn">Refresh</button>
+                    </div>
+                    <div id="power-rankings" class="power-rankings"></div>
+                    <p class="pr-note">Power Score = ((AVG × 6) + ((HIGH + LOW) × 2) + ((Win% × 200) × 2)) / 10</p>
                 </section>
 
                 <section id="transactions" class="hidden">
