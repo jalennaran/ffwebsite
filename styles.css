@@ -197,3 +197,27 @@ aside nav ul li.active {
     color: #555;
     font-size: 1rem;
 }
+
+.standings-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.standings-table th, .standings-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+}
+.standings-table tr:hover { background: #f9f9f9; }
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border: 1px solid #ddd;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  margin-right: 6px;
+  background: #fafafa;
+}
