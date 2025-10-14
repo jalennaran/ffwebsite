@@ -587,10 +587,11 @@ async function loadPowerRankings() {
     // 3) Compute AVG/HIGH/LOW/TOTAL and Oberon power
     for (const t of teams.values()) {
       if (t.weekly.length) {
+        const nonZeroWeeks = t.weekly.filter(w => w > 0);
         t.fpts = t.weekly.reduce((a, b) => a + b, 0);
         t.avg  = t.fpts / t.weekly.length;
         t.high = Math.max(...t.weekly);
-        t.low  = Math.min(...t.weekly);
+        t.low  = nonZeroWeeks.length ? Math.min(...nonZeroWeeks) : t.high;
       } else {
         t.fpts = 0; t.avg = 0; t.high = 0; t.low = 0;
       }
