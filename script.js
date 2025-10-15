@@ -2,10 +2,12 @@ const playerList = document.getElementById('players');
 const roster = document.getElementById('roster');
 
 // Sleeper config for my league
+
 const SLEEPER_BASE = 'https://api.sleeper.app/v1';
 const LEAGUE_ID = '1180395246100484096';
 
 // Generic JSON fetch
+
 async function jget(path) {
   const res = await fetch(`${SLEEPER_BASE}${path}`);
   if (!res.ok) throw new Error(`HTTP ${res.status}: ${path}`);
@@ -13,6 +15,7 @@ async function jget(path) {
 }
 
 // Cache the big players map in localStorage (shrunk to essentials)
+
 async function getPlayersMap() {
   const key = 'sleeper_players_map_v1';
   const cached = localStorage.getItem(key);
@@ -27,12 +30,14 @@ async function getPlayersMap() {
 }
 
 // NFL current week (display_week preferred)
+
 async function getCurrentWeek() {
   const state = await jget('/state/nfl');
   return state.display_week ?? state.week ?? state.leg ?? 1;
 }
 
 // Bundle core league info
+
 async function getLeagueBundle() {
   const [league, users, rosters] = await Promise.all([
     jget(`/league/${LEAGUE_ID}`),
@@ -47,6 +52,7 @@ async function getLeagueBundle() {
 }
 
 // UI helpers
+
 function avatarURL(avatarId, thumb=false) {
   if (!avatarId) return null;
   return `https://sleepercdn.com/avatars/${thumb ? 'thumbs/' : ''}${avatarId}`;
@@ -97,6 +103,7 @@ toggleButton.addEventListener('click', () => {
 });
 
 // Also close sidebar if clicking outside (overlay click)
+
 overlay.addEventListener('click', () => {
     sidebar.classList.remove('visible');
     toggleButton.classList.remove('open');
@@ -105,6 +112,7 @@ overlay.addEventListener('click', () => {
 });
 
 // Close sidebar when clicking menu items too
+
 const menuItems = document.querySelectorAll('.menu-item');
 menuItems.forEach(item => {
     item.addEventListener('click', () => {
@@ -237,6 +245,7 @@ async function loadMatchups() {
 }
 
 // Helper: build a team column with Starters + Bench
+
 function buildTeamCol(entry, teamName, players) {
   const col = el('div', { class: 'team-col' });
   col.append(el('span', { class: 'team-name', html: teamName }));
@@ -269,6 +278,7 @@ function buildTeamCol(entry, teamName, players) {
 }
 
 // Helper: one player line
+
 function playerRow(pid, pts, players) {
   const p = players[pid] || {};
   const row = el('div', { class: 'player-row' });
@@ -484,7 +494,6 @@ async function loadTransactions() {
   }
 }
 
-
 // drafts page
 
 async function loadDrafts() {
@@ -634,11 +643,13 @@ async function loadPowerRankings() {
 }
 
 // tiny escaper (safe, no globals touched)
+
 function escapeHtml(s=''){
   return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
 //Power Rankings wiring (no nav overrides)
+
 (function wirePowerRankings() {
   const standingsSection = document.getElementById('standings');
   if (!standingsSection) return;
