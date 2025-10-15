@@ -29,6 +29,20 @@ async function getPlayersMap() {
   return slim;
 }
 
+// Hide or rename certain users
+const HIDDEN_USERS = {
+  // use their Sleeper display_name or team_name as keys
+  "jewishpoosayslay": "Eitan's Team",     // replace the team name
+  "jewishpoosayslay": "Eitan's Team",         // replace the username
+};
+
+// Helper to filter out unwanted team names/usernames
+function sanitizeName(name) {
+  if (!name) return name;
+  return HIDDEN_USERS[name] || name;
+}
+
+
 // NFL current week (display_week preferred)
 
 async function getCurrentWeek() {
@@ -132,7 +146,7 @@ async function loadStandings() {
     const { rosters, ownerByRoster } = await getLeagueBundle();
     const rows = rosters.map(r => {
       const u = ownerByRoster[r.roster_id];
-      const teamName = (u?.metadata?.team_name) || u?.display_name || `Roster ${r.roster_id}`;
+      const teamName = sanitizeName((u?.metadata?.team_name) || u?.display_name || `Roster ${r.roster_id}`);
       const wins = r.settings?.wins ?? 0;
       const losses = r.settings?.losses ?? 0;
       const pts = (r.settings?.fpts ?? 0) + (r.settings?.fpts_decimal ?? 0)/100;
@@ -170,7 +184,7 @@ async function loadRosters() {
     root.innerHTML = '';
     rosters.forEach(r => {
       const owner = ownerByRoster[r.roster_id];
-      const teamName = (owner?.metadata?.team_name) || owner?.display_name || `Roster ${r.roster_id}`;
+      const teamName = sanitizeName((owner?.metadata?.team_name) || owner?.display_name || `Roster ${r.roster_id}`);
       const card = el('div', { class: 'news-card' });
       const title = el('strong', { html: teamName });
       const list = el('ul');
@@ -204,8 +218,8 @@ async function loadMatchups() {
     Object.values(byId).forEach(pair => {
       const a = pair[0], b = pair[1] || {};
       const aOwn = ownerByRoster[a?.roster_id], bOwn = ownerByRoster[b?.roster_id];
-      const nameA = (aOwn?.metadata?.team_name) || aOwn?.display_name || `Roster ${a?.roster_id ?? '?'}`;
-      const nameB = (bOwn?.metadata?.team_name) || bOwn?.display_name || (b ? `Roster ${b.roster_id}` : 'BYE');
+      const nameA = sanitizeName((aOwn?.metadata?.team_name) || aOwn?.display_name || `Roster ${a?.roster_id ?? '?'}`);
+      const nameB = sanitizeName((bOwn?.metadata?.team_name) || bOwn?.display_name || (b ? `Roster ${b.roster_id}` : 'BYE'));
 
       // Card
       const card = el('div', { class: 'news-card match-card' });
@@ -496,41 +510,120 @@ async function loadTransactions() {
 
 // drafts page
 
+// Helper: map position -> CSS class
+function posClass(pos) {
+  const p = (pos || 'UNK').toUpperCase();
+  return ['QB','RB','WR','TE','K','DST'].includes(p) ? `pos-${p}` : 'pos-UNK';
+}
+function shortName(name, max=16) {
+  if (!name) return '';
+  return name.length > max ? name.slice(0, max-1) + '…' : name;
+}
+function teamNameFromUser(u) {
+  return (u?.metadata?.team_name) || u?.display_name || '—';
+}
+function avatarURLSafe(u) {
+  return u?.avatar ? avatarURL(u.avatar, true) : null;
+}
+
 async function loadDrafts() {
   const root = document.getElementById('drafts-root');
   root.textContent = 'Loading drafts...';
+
   try {
-    const drafts = await jget(`/league/${LEAGUE_ID}/drafts`);
-    if (!drafts.length) { root.textContent = 'No drafts found.'; return; }
     const players = await getPlayersMap();
 
-    root.innerHTML = '';
-    drafts.forEach(d => {
-      const card = el('div', { class: 'news-card' });
-      const start = d.start_time ? new Date(d.start_time).toLocaleString() : 'unknown';
-      const btn = el('button', {}, 'View Picks');
+    // Walk back through all linked seasons, gathering drafts + local owner maps
+    const collected = []; // [{leagueId, draft, ownerByRoster}]
+    let lid = LEAGUE_ID;
 
-      btn.addEventListener('click', async () => {
-        btn.disabled = true;
-        const picks = await jget(`/draft/${d.draft_id}/picks`);
-        const list = el('ul');
-        picks.forEach(pk => {
-          const p = players[pk.player_id] || {};
-          const name = p.fn || pk.player_id;
-          list.append(el('li', {}, `Rnd ${pk.round} · Pick ${pk.pick_no || pk.pick} — Roster ${pk.roster_id} — ${name}${p.pos ? ' ('+p.pos+')' : ''}${p.team ? ' – '+p.team : ''}`));
-        });
-        card.append(list);
+    while (lid) {
+      const league = await jget(`/league/${lid}`);
+      const [users, rosters, drafts] = await Promise.all([
+        jget(`/league/${lid}/users`),
+        jget(`/league/${lid}/rosters`),
+        jget(`/league/${lid}/drafts`)
+      ]);
+
+      const userById = {};
+      users.forEach(u => userById[u.user_id] = u);
+      const ownerByRoster = {};
+      rosters.forEach(r => ownerByRoster[r.roster_id] = userById[r.owner_id]);
+
+      drafts.forEach(d => collected.push({ leagueId: lid, draft: d, ownerByRoster }));
+      lid = league.previous_league_id || null; // move to previous season
+    }
+
+    if (!collected.length) { root.textContent = 'No drafts found.'; return; }
+
+    // Sort newest → oldest (by season then start_time if present)
+    collected.sort((a, b) => {
+      const sa = Number(a.draft.season || 0), sb = Number(b.draft.season || 0);
+      if (sb !== sa) return sb - sa;
+      const ta = a.draft.start_time || 0, tb = b.draft.start_time || 0;
+      return (tb - ta);
+    });
+
+    root.innerHTML = '';
+    for (const { draft: d, ownerByRoster } of collected) {
+      const card = el('div', { class: 'news-card draft-card' });
+
+      const start = d.start_time ? new Date(d.start_time).toLocaleString() : 'unknown';
+      const title = el('strong', {
+        html: `${d.metadata?.name || 'Draft'} — ${d.season || ''} (${d.settings?.rounds || '?'} rounds)`
+      });
+      const meta = el('div', { class: 'draft-meta', html: `Type: ${d.type} · Status: ${d.status} · Start: ${start}` });
+
+      const scroller = el('div', { class: 'draft-scroller' });
+      const board = el('div', { class: 'draft-board' });
+      scroller.append(board);
+      card.append(title, meta, scroller);
+
+      root.append(card);
+
+      // Fetch picks and render as colored tiles
+      const picks = await jget(`/draft/${d.draft_id}/picks`);
+
+      // Keep Sleeper's order if pick_no exists; otherwise by (round, pick)
+      picks.sort((a, b) => {
+        const ao = (a.pick_no ?? ((a.round ?? 0) * 1000 + (a.pick ?? 0)));
+        const bo = (b.pick_no ?? ((b.round ?? 0) * 1000 + (b.pick ?? 0)));
+        return ao - bo;
       });
 
-      card.append(
-        el('strong', { html: `${d.metadata?.name || 'Draft'} — ${d.season || ''} (${d.settings?.rounds || '?'} rounds)` }),
-        el('p', { html: `Type: ${d.type} · Status: ${d.status} · Start: ${start}` }),
-        btn
-      );
-      root.append(card);
-    });
-  } catch (e) { root.textContent = 'Failed to load drafts.'; console.error(e); }
+      picks.forEach(pk => {
+        const p = players[pk.player_id] || {};
+        const owner = ownerByRoster[pk.roster_id];
+
+        const node = el('div', { class: `tile ${posClass(p.pos)}` });
+        const rn = `R${pk.round ?? '?'} · P${(pk.pick_no ?? pk.pick ?? '?')}`;
+
+        const line1 = el('div', { class: 'line1' });
+        line1.append(
+          el('div', { html: `${shortName(p.fn || pk.player_id, 18)}` }),
+          el('div', { html: rn })
+        );
+
+        const line2 = el('div', {
+          class: 'line2',
+          html: `${p.pos ? p.pos : '?'} ${p.team ? '· '+p.team : ''}`
+        });
+
+        const line3 = el('div', { class: 'line3' });
+        const av = avatarURLSafe(owner);
+        if (av) line3.append(el('img', { class: 'avatar', src: av, alt: 'avatar' }));
+        line3.append(el('span', { html: shortName(teamNameFromUser(owner), 18) }));
+
+        node.append(line1, line2, line3);
+        board.append(node);
+      });
+    }
+  } catch (e) {
+    console.error(e);
+    root.textContent = 'Failed to load drafts.';
+  }
 }
+
 
 // Power Rankings (located within standings)
 
