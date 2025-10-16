@@ -493,3 +493,17 @@ main, #main-content { min-width: 0; }      /* explicit, in case you target main 
 .badge {
   font-size:.72rem; padding:2px 6px; border-radius:6px; border:1px solid #e5e7eb; background:#fff;
 }
+
+.pos.empty {
+  display: inline-block;
+  width: 34px;
+  height: 22px;
+  border-radius: 12px;
+  background-color: #e0e0e0;
+  opacity: 0.5;
+}
+
+.empty-name {
+  color: #999;
+  font-style: italic;
+}

@@ -602,24 +602,32 @@ function buildTeamCol(entry, teamName, players) {
 
 function playerRow(pid, pts, players) {
   const p = players[pid] || {};
+  const posRaw  = p.pos || '';
+  const posKey  = posRaw === 'DEF' ? 'DST' : posRaw;
+  const posClass = posRaw === 'DEF' ? 'dst' : posRaw.toLowerCase();
+  // treat only true empty slots as empty (pid missing/zero), not missing first names
+  const hasPlayer = pid && pid !== '0' && pid !== 0;
   const row = el('div', { class: 'player-row' });
-
-  // POS/Team pill
-  row.append(el('div', {},
-    el('span', { class: 'pos', html: p.pos || '?' })
-  ));
-
+  // Position pill (blank oval if unknown)
+  if (posKey) {
+    row.append(el('div', {}, el('span', { class: `pos ${posClass}`, html: posKey })));
+  } else {
+    row.append(el('div', {}, el('span', { class: 'pos empty', html: '&nbsp;' })));
+  }
   // Name + meta
-  const name = p.fn || pid;
-  const meta = [p.team].filter(Boolean).join(' · ');
-  row.append(el('div', {},
-    el('div', { html: name }),
-    el('div', { class: 'pmeta', html: meta })
-  ));
-
-  // Points
+  const name = hasPlayer
+    // fallbacks cover DST/team defenses which often lack p.fn
+    ? (p.fn || p.name || p.fullname || p.displayName || p.team || String(pid))
+    : 'Empty';
+  const meta = hasPlayer ? [p.team].filter(Boolean).join(' · ') : '';
+  row.append(
+    el('div', {},
+      el('div', { html: name, class: hasPlayer ? '' : 'empty-name' }),
+      el('div', { class: 'pmeta', html: meta })
+    )
+  );
+  // Points (keep 0.00 even for empty)
   row.append(el('div', { class: 'pts', html: Number(pts).toFixed(2) }));
-
   return row;
 }
 
