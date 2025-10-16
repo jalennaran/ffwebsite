@@ -114,6 +114,7 @@ export default async function loadPowerTrends() {
     data: { labels, datasets },
     options: {
       responsive: true,
+      maintainAspectRatio: false,
       plugins: {
         legend: { position: 'bottom' },
         title: { display: true, text: 'Weekly Power Ranking (cumulative through each week)' },

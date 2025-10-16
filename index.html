@@ -71,7 +71,9 @@
                     <div id="power-rankings" class="power-rankings"></div>
                     <p class="pr-note">Power score uses the Oberon Mt. Power Rating Formula: Power Score = ((AVG × 6) + ((HIGH + LOW) × 2) + ((Win% × 200) × 2)) / 10</p>
                     <h3>Power Ranking Trends</h3>
-                    <canvas id="power-trend-chart" width="800" height="400"></canvas>
+                        <div class="chart-wrap">
+                        <canvas id="power-trend-chart"></canvas>
+                    </div>
                 </section>
 
                 <section id="transactions" class="hidden">
@@ -96,6 +98,7 @@
     <!-- modules -->
     <script type="module" src="scripts/api.js"></script>
     <script type="module" src="scripts/ui.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="module" src="scripts/main.js"></script>
 </body>
 </html>

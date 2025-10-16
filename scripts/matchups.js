@@ -43,14 +43,20 @@ export default async function loadMatchups() {
       card.append(header);
 
       // Body (hidden by default)
+      // Body (hidden by default)
       const body = el('div', { class: 'match-body' });
+
+      // scroller + wide grid (same behavior as drafts)
+      const scroller = el('div', { class: 'match-scroller' });
       const grid = el('div', { class: 'match-grid' });
       grid.append(
         buildTeamCol(a, nameA, players),
         buildTeamCol(b, nameB, players)
       );
-      body.append(grid);
+      scroller.append(grid);
+      body.append(scroller);
       card.append(body);
+
 
       // Toggle logic
       const toggle = () => body.classList.toggle('open');
