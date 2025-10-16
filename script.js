@@ -14,6 +14,12 @@ async function jget(path) {
   return res.json();
 }
 
+async function jgetAbs(url) {
+  const res = await fetch(url, { credentials: 'omit' });
+  if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
+  return res.json();
+}
+
 // Cache the big players map in localStorage (shrunk to essentials)
 
 async function getPlayersMap() {
@@ -29,6 +35,43 @@ async function getPlayersMap() {
   return slim;
 }
 
+// ----- Season-to-date team averages up to (and including) cutoffWeek -----
+const __avgCache = new Map(); // key = cutoffWeek, val = {rid -> avg}
+
+async function getAvgByRosterUpTo(cutoffWeek) {
+  const key = String(Math.max(0, cutoffWeek));
+  if (__avgCache.has(key)) return __avgCache.get(key);
+
+  // Nothing to average before Week 1
+  if (cutoffWeek < 1) { __avgCache.set(key, {}); return {}; }
+
+  const totals = Object.create(null);
+  const counts = Object.create(null);
+
+  for (let wk = 1; wk <= cutoffWeek; wk++) {
+    const weekMatchups = await jget(`/league/${LEAGUE_ID}/matchups/${wk}`);
+    // Count exactly one game per roster per week (defensive de-dupe)
+    const seen = new Set(); // `${wk}:${roster_id}`
+    for (const m of weekMatchups) {
+      const rid = m.roster_id;
+      const tag = `${wk}:${rid}`;
+      if (seen.has(tag)) continue;
+      seen.add(tag);
+      const pts = Number(m.points ?? 0);
+      totals[rid] = (totals[rid] || 0) + pts;
+      counts[rid] = (counts[rid] || 0) + 1;
+    }
+  }
+
+  const avgByRoster = Object.create(null);
+  for (const rid in totals) {
+    avgByRoster[rid] = totals[rid] / Math.max(1, counts[rid]);
+  }
+  __avgCache.set(key, avgByRoster);
+  return avgByRoster;
+}
+
+
 // Hide or rename certain users
 const HIDDEN_USERS = {
   // use their Sleeper display_name or team_name as keys
@@ -42,6 +85,122 @@ function sanitizeName(name) {
   return HIDDEN_USERS[name] || name;
 }
 
+async function getCurrentSeason() {
+  try {
+    const league = await jget(`/league/${LEAGUE_ID}`);
+    return league?.season || new Date().getFullYear();
+  } catch {
+    return new Date().getFullYear();
+  }
+}
+
+// Normalize schedule/team codes to Sleeper-style abbreviations
+const TEAM_ALIAS = {
+  JAC: 'JAX',
+  WSH: 'WAS',
+  LA:  'LAR',   // older feeds sometimes use "LA" for Rams
+  STL: 'LAR',   // very old Rams code
+  SD:  'LAC',   // old Chargers code
+  OAK: 'LV'     // old Raiders code
+};
+function normTeam(t) {
+  if (!t) return '';
+  const up = String(t).toUpperCase();
+  return TEAM_ALIAS[up] || up;
+}
+
+// teamByPid is a map like { "PLAYER_ID": "KC", ... } built during render
+// REPLACE the first line of the function with these two lines:
+async function getWeekContextFromSleeperSafe(season, week, teamByPid = {}) {
+  const PROJ_API = 'https://api.sleeper.com';      // projections & schedule OK here
+  const APP_API  = 'https://api.sleeper.app/v1';   // v1 app API matches player ids
+  const POS_LIST = ['QB','RB','WR','TE','K','DEF'];
+
+  const oppByPid  = Object.create(null);
+  const avgByPid  = Object.create(null);
+  const oppByTeam = Object.create(null);
+
+  // 1) projections -> opponent  (UNCHANGED except the base)
+  await Promise.all(POS_LIST.map(async pos => {
+    try {
+      const url = `${PROJ_API}/projections/nfl/${season}/${week}?season_type=regular&position=${pos}`;
+      const arr = await jgetAbs(url);
+      (arr || []).forEach(rec => {
+        const pid = rec?.player_id || rec?.player?.player_id || rec?.id;
+        const opp = rec?.opponent ?? rec?.opp ?? rec?.team_opponent ?? rec?.stats?.opponent ?? rec?.metadata?.opponent ?? '';
+        if (pid && opp && !oppByPid[pid]) oppByPid[pid] = String(opp).toUpperCase();
+      });
+    } catch (e) { console.warn('projections fail', pos, e); }
+  }));
+
+    // 2) season averages (use projections endpoint instead of stats)
+  await Promise.all(POS_LIST.map(async pos => {
+    try {
+      const weeks = Array.from({ length: week - 1 }, (_, i) => i + 1); // all weeks before current
+      const totals = Object.create(null);
+      const games = Object.create(null);
+
+      // pull weekly projections and sum fantasy points
+      await Promise.all(weeks.map(async w => {
+        const url = `${PROJ_API}/projections/nfl/${season}/${w}?season_type=regular&position=${pos}`;
+        const arr = await jgetAbs(url);
+        (arr || []).forEach(rec => {
+          const pid = rec?.player_id || rec?.id;
+          const stats = rec?.stats || {};
+          const pts =
+            stats.fantasy_points_ppr ??
+            stats.fantasy_points ??
+            stats.pts_ppr ??
+            stats.ppr ??
+            0;
+          if (!pid || !pts) return;
+          totals[pid] = (totals[pid] || 0) + pts;
+          games[pid] = (games[pid] || 0) + 1;
+        });
+      }));
+
+    // compute averages
+    for (const pid in totals) {
+      if (games[pid] > 0) avgByPid[pid] = totals[pid] / games[pid];
+    }
+  } catch (e) {
+    console.warn(`season avg fail ${pos}`, e);
+  }
+}));
+
+
+
+  // 3) schedule fallback -> oppByTeam  (UNCHANGED except the base)
+  try {
+    const sched = await jgetAbs(`${PROJ_API}/schedule/nfl/${season}/${week}`);  
+    if (Array.isArray(sched)) {
+      const playing = new Set();
+      sched.forEach(g => {
+        const rawHome = g?.home_team;
+        const rawAway = g?.away_team;
+        const home = normTeam(rawHome);
+        const away = normTeam(rawAway);
+        if (!home || !away) return;
+        playing.add(home); playing.add(away);
+        oppByTeam[home] = `vs ${away}`;
+        oppByTeam[away] = `@ ${home}`;
+      });
+
+    // Sleeper-style canonical list (already used elsewhere)
+    const NFL = ['ARI','ATL','BAL','BUF','CAR','CHI','CIN','CLE','DAL','DEN','DET','GB','HOU','IND','JAX','KC','LAC','LAR','LV','MIA','MIN','NE','NO','NYG','NYJ','PHI','PIT','SEA','SF','TB','TEN','WAS'];
+    NFL.forEach(t => { if (!playing.has(t)) oppByTeam[t] = 'BYE'; });
+
+    // Fill missing player opponents from team map (handles 0-proj / injured)
+    Object.entries(teamByPid).forEach(([pid, team]) => {
+      const t = normTeam(team);
+      if ((!oppByPid[pid] || !String(oppByPid[pid]).trim()) && t && oppByTeam[t]) {
+        oppByPid[pid] = oppByTeam[t];
+      }
+    });
+  }
+} catch (e) { console.warn('schedule fallback fail', e); }
+return { oppByPid, avgByPid, oppByTeam };   // <-- return oppByTeam too
+}
 
 // NFL current week (display_week preferred)
 
@@ -176,27 +335,167 @@ async function loadStandings() {
 
 // Rosters page
 
+// Rosters page (expandable tiles; Starters/Bench/IR/Taxi; sorted & colored)
+// SAFER Rosters: renders first, then hydrates matchup + avg
 async function loadRosters() {
   const root = document.getElementById('rosters-root');
   root.textContent = 'Loading rosters...';
+
+  // helpers
+  const POS_ORDER = { QB:0, RB:1, WR:2, TE:3, K:4, DST:5, DEF:5 };
+  const byPosThenName = arr => arr.sort((a,b)=>{
+    const ak = POS_ORDER[a.pos] ?? 99, bk = POS_ORDER[b.pos] ?? 99;
+    if (ak !== bk) return ak - bk;
+    return (a.fn||'').localeCompare(b.fn||'');
+  });
+  const posKey = p => (p.pos === 'DEF' ? 'DST' : (p.pos||''));
+  const posClass = p => ((p.pos||'').toLowerCase() === 'def' ? 'dst' : (p.pos||'').toLowerCase());
+
   try {
-    const [{ rosters, ownerByRoster }, players] = await Promise.all([getLeagueBundle(), getPlayersMap()]);
+    // base data
+    const [week, leagueBundle, playersMap] = await Promise.all([
+      getCurrentWeek(),
+      getLeagueBundle(),   // { rosters, ownerByRoster }
+      getPlayersMap()
+    ]);
+    const { rosters, ownerByRoster } = leagueBundle;
+    const teamByPid = {};
+
+    // starters from matchups (if this fails, we still render without starters emphasis)
+    let startersByRoster = {};
+    try {
+      const matchups = await jget(`/league/${LEAGUE_ID}/matchups/${week}`);
+      matchups.forEach(m => { if (m?.roster_id) startersByRoster[m.roster_id] = (m.starters||[]).filter(Boolean); });
+    } catch (e) {
+      console.warn('matchups fetch failed', e);
+    }
+
+    // render skeleton
     root.innerHTML = '';
     rosters.forEach(r => {
       const owner = ownerByRoster[r.roster_id];
-      const teamName = sanitizeName((owner?.metadata?.team_name) || owner?.display_name || `Roster ${r.roster_id}`);
-      const card = el('div', { class: 'news-card' });
-      const title = el('strong', { html: teamName });
-      const list = el('ul');
-      (r.players || []).forEach(pid => {
-        const p = players[pid] || {};
-        list.append(el('li', {}, `${p.fn ?? pid} ${p.pos ? '('+p.pos+')' : ''} ${p.team ? '– '+p.team : ''}`));
-      });
-      card.append(title, list);
+      const teamName = (owner?.metadata?.team_name) || owner?.display_name || `Roster ${r.roster_id}`;
+
+      const all = (r.players||[]).filter(Boolean);
+      const ir  = (r.reserve||[]).filter(Boolean);
+      const taxi= (r.taxi||[]).filter(Boolean);
+      const starters = (startersByRoster[r.roster_id]||[]).filter(Boolean);
+      const exclude = new Set([...starters, ...ir, ...taxi]);
+      const bench = all.filter(pid => !exclude.has(pid));
+
+      const pick = (pid) => {
+        const p = playersMap[pid] || {};
+        const pos = p.pos === 'DEF' ? 'DST' : p.pos;
+        const team = p.team || '';
+        teamByPid[pid] = team;                 // <<< NEW: save team for fallback
+        return { pid, fn: p.fn || pid, pos, team };
+      };
+
+
+      const startersList = byPosThenName(starters.map(pick));
+      const benchList    = byPosThenName(bench.map(pick));
+      const irList       = byPosThenName(ir.map(pick));
+      const taxiList     = byPosThenName(taxi.map(pick));
+
+      // card
+      const card   = el('div', { class:'news-card ros-card' });
+      const header = el('div', { class:'ros-header', role:'button', tabindex:'0' });
+      header.append(el('div', { class:'ros-title', html: teamName }),
+                    el('div', { class:'pmeta', html:`Week ${week}` }));
+      const body   = el('div', { class:'ros-body' });
+      const inner  = el('div', { class:'ros-inner' });
+
+      inner.append(section('Starters', startersList, true));
+      inner.append(section('Bench', benchList));
+      inner.append(section('IR', irList));
+      inner.append(section('Taxi', taxiList));
+
+      body.append(inner);
+      card.append(header, body);
+      const toggle = () => body.classList.toggle('open');
+      header.addEventListener('click', toggle);
+      header.addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' ') { e.preventDefault(); toggle(); } });
+
       root.append(card);
     });
-  } catch (e) { root.textContent = 'Failed to load rosters.'; console.error(e); }
+
+    if (!root.children.length) root.textContent = 'No rosters found.';
+
+    // hydrate matchup + avg AFTER render (non-fatal if it fails)
+    const season = await getCurrentSeason();
+    const { oppByPid, avgByPid, oppByTeam } = await getWeekContextFromSleeperSafe(season, week, teamByPid);
+
+    document.querySelectorAll('[data-pid]').forEach(node => {
+      const pid = node.getAttribute('data-pid');
+      let opp = oppByPid[pid];
+      if (!opp) {
+        const team = normTeam(teamByPid[pid] || '');
+        if (team && oppByTeam && oppByTeam[team]) opp = oppByTeam[team];
+      }
+      const avg = avgByPid[pid];
+      const mEl = node.querySelector('.badge.mup');
+      const aEl = node.querySelector('.badge.avg');
+
+      if (mEl) {
+        let label = '––';
+        if (opp) {
+          const s = String(opp).trim().toUpperCase();
+          if (s === 'BYE') label = 'BYE/OUT';
+          else if (s.startsWith('@') || s.startsWith('VS')) label = s;
+          else label = `vs ${s}`;
+        }
+        mEl.textContent = label;
+      }
+      if (aEl) aEl.textContent = (avg != null && isFinite(avg)) ? `${avg.toFixed(1)} avg` : '—';
+    });
+
+
+    // ===== helpers used above =====
+    function section(title, items, emphasize=false) {
+      const wrap = el('div', {});
+      wrap.append(el('div', { class:'group-title', html:title }));
+      if (!items.length) {
+        wrap.append(rowSkeleton(null));
+        return wrap;
+      }
+      items.forEach(p => wrap.append(rowSkeleton(p, emphasize)));
+      return wrap;
+    }
+
+    function rowSkeleton(p, emphasize=false) {
+      // If p is null, render an empty row
+      const row = el('div', { class:'player-row', ...(p? { 'data-pid': p.pid } : {}) });
+
+      // left: position
+      row.append(el('div', {}, el('span', { class:`pos ${p? posClass(p):''}`, html: p? posKey(p): '—' })));
+
+      // middle: name + team
+      const name = p ? (emphasize ? `<strong>${p.fn}</strong>` : p.fn) : 'No players';
+      const meta = p ? (p.team || '') : '';
+      row.append(el('div', {}, el('div', { html:name }), el('div', { class:'pmeta', html:meta })));
+
+      // right badges: matchup + avg (filled later)
+      row.append(el('div', { class:'cell' }, el('span', { class:'badge mup', html:'...' })));
+      row.append(el('div', { class:'cell' }, el('span', { class:'badge avg', html:'...' })));
+
+      return row;
+    }
+
+    function normalizeOpp(opp) {
+      const s = String(opp).trim();
+      if (!s) return '––';
+      if (s.startsWith('@') || s.startsWith('vs')) return s;
+      return `vs ${s.toUpperCase()}`;
+    }
+
+  } catch (err) {
+    console.error('loadRosters fatal:', err);
+    const root = document.getElementById('rosters-root');
+    root.textContent = 'Failed to load rosters.';
+  }
 }
+
+
 
 //matchups page
 
@@ -210,6 +509,7 @@ async function loadMatchups() {
       getPlayersMap()
     ]);
 
+    const avgByRoster = await getAvgByRosterUpTo(Math.max(0, week - 1));
     const matchups = await jget(`/league/${LEAGUE_ID}/matchups/${week}`);
     const byId = {};
     matchups.forEach(m => { (byId[m.matchup_id] ||= []).push(m); });
@@ -222,14 +522,21 @@ async function loadMatchups() {
       const nameB = sanitizeName((bOwn?.metadata?.team_name) || bOwn?.display_name || (b ? `Roster ${b.roster_id}` : 'BYE'));
 
       // Card
-      const card = el('div', { class: 'news-card match-card' });
-
-      // Header (click to expand)
+      const card  = el('div', { class: 'news-card match-card' });
       const header = el('div', { class: 'match-header', role: 'button', tabindex: '0' });
-      header.append(
+
+      const aAvg = avgByRoster[a?.roster_id];
+      const bAvg = avgByRoster[b?.roster_id];
+
+      const left = el('div', { class: 'match-left' });
+      left.append(
         el('div', { class: 'match-title', html: `Week ${week} · ${nameA} <span style="opacity:.6">vs</span> ${nameB}` }),
-        el('div', { class: 'match-score', html: `${(a?.points ?? 0).toFixed(2)} — ${(b?.points ?? 0).toFixed(2)}` }),
+        el('div', { class: 'match-avg',   html: `Avg: ${isFinite(aAvg) ? aAvg.toFixed(1) : '—'} — ${isFinite(bAvg) ? bAvg.toFixed(1) : '—'}` })
       );
+
+      const score = el('div', { class: 'match-score', html: `${(a?.points ?? 0).toFixed(2)} — ${(b?.points ?? 0).toFixed(2)}` });
+
+      header.append(left, score);
       card.append(header);
 
       // Body (hidden by default)
@@ -578,7 +885,6 @@ async function loadDrafts() {
       const board = el('div', { class: 'draft-board' });
       scroller.append(board);
       card.append(title, meta, scroller);
-
       root.append(card);
 
       // Fetch picks and render as colored tiles
@@ -675,7 +981,7 @@ async function loadPowerRankings() {
 
     // 2) Pull all weeks’ matchups up to current week (skip silently on errors)
     const currentWeek = Math.max(1, parseInt(state?.week || '1', 10));
-    for (let wk = 1; wk <= currentWeek; wk++) {
+    for (let wk = 1; wk < currentWeek; wk++) {
       const res = await fetch(`${PR_PROXY}https://api.sleeper.app/v1/league/${LEAGUE_ID}/matchups/${wk}`);
       if (!res.ok) continue;
       const matchups = await res.json();
