@@ -33,6 +33,7 @@ const loaders = {
   matchups: () => import('./matchups.js').then(m => m.default()),
   transactions: () => import('./transactions.js').then(m => m.default()),
   drafts: () => import('./drafts.js').then(m => m.default()),
+  history: () => import('./history.js').then(m => m.default()),
 };
 
 export function showPage(id) {
