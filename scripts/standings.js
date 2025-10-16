@@ -36,5 +36,7 @@ export default async function loadStandings() {
     root.innerHTML = '';
     root.append(table);
     await loadPowerRankings();
+    const { default: loadPowerTrends } = await import('./power-trends.js');
+    await loadPowerTrends();
   } catch (e) { root.textContent = 'Failed to load standings.'; console.error(e); }
 }

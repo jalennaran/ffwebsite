@@ -58,7 +58,7 @@
                 <section id="standings" class="hidden">
                     <h2>League Standings</h2>
                     <div id="standings-root"></div>
-                    <h3>Power Rankings</h3>
+                    <h2>Power Rankings</h2>
                     <div class="pr-controls">
                     <label for="pr-metric">Sort by:</label>
                     <select id="pr-metric">
@@ -70,6 +70,8 @@
                     </div>
                     <div id="power-rankings" class="power-rankings"></div>
                     <p class="pr-note">Power score uses the Oberon Mt. Power Rating Formula: Power Score = ((AVG × 6) + ((HIGH + LOW) × 2) + ((Win% × 200) × 2)) / 10</p>
+                    <h3>Power Ranking Trends</h3>
+                    <canvas id="power-trend-chart" width="800" height="400"></canvas>
                 </section>
 
                 <section id="transactions" class="hidden">
