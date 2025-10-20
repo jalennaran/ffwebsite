@@ -139,9 +139,27 @@ export default async function loadRosters() {
       row.append(el('div', {}, el('span', { class:`pos ${p? posClass(p):''}`, html: p? posKey(p): '—' })));
 
       // middle: name + team
-      const name = p ? (emphasize ? `<strong>${p.fn}</strong>` : p.fn) : 'No players';
-      const meta = p ? (p.team || '') : '';
-      row.append(el('div', {}, el('div', { html:name }), el('div', { class:'pmeta', html:meta })));
+      // middle: name + team
+      const nameHtml = p
+        ? (emphasize
+            ? `<strong><span class="name-link" data-player="${p.pid}">${p.fn}</span></strong>`
+            : `<span class="name-link" data-player="${p.pid}">${p.fn}</span>`)
+        : 'No players';
+
+      const nameDiv = el('div', { html: nameHtml });
+      const metaDiv = el('div', { class:'pmeta', html: p ? (p.team || '') : '' });
+      row.append(el('div', {}, nameDiv, metaDiv));
+
+      // hook: open modal on click
+      if (p) {
+        const link = nameDiv.querySelector('[data-player]');
+        link?.addEventListener('click', async (ev) => {
+          ev.stopPropagation();
+          const { openPlayerPanel } = await import('./player-panel.js');
+          openPlayerPanel(p.pid);
+        });
+      }
+
 
       // right badges: matchup + avg (filled later)
       row.append(el('div', { class:'cell' }, el('span', { class:'badge mup', html:'...' })));

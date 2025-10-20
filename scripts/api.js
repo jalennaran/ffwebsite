@@ -14,6 +14,10 @@ export async function jgetAbs(url) {
   return res.json();
 }
 
+// --- fast caches for usage scoring & team depth
+const __usageCache = new Map();           // key: `${season}:${endWeek}:${pid}`
+const __teamDepthCache = new Map();       // key: `TD:${season}:${endWeek}:${team}`
+
 // --- players map cache ---
 export async function getPlayersMap() {
   const key = 'sleeper_players_map_v1';
@@ -185,4 +189,150 @@ export async function getWeekContextFromSleeperSafe(season, week, teamByPid = {}
   }
 
   return { oppByPid, avgByPid, oppByTeam };
+}
+
+// --- weekly points for a player in my league
+export async function getPlayerWeeklyLeaguePoints(pid, endWeek) {
+  const out = [];
+  for (let w = 1; w <= endWeek; w++) {
+    try {
+      const mus = await jget(`/league/${LEAGUE_ID}/matchups/${w}`);
+      // find first entry that contains this player in players_points
+      let pts = 0;
+      for (const m of mus) {
+        if (m?.players_points && pid in m.players_points) {
+          pts = Number(m.players_points[pid] || 0);
+          break;
+        }
+      }
+      out.push({ week: w, pts });
+    } catch { out.push({ week: w, pts: 0 }); }
+  }
+  return out;
+}
+
+// --- depth chart from players map (best-effort using Sleeper fields)
+export function buildDepthChart(team, pos, playersMap) {
+  const T = String(team || '').toUpperCase();
+  const P = String(pos || '').toUpperCase().replace('DEF','DST');
+  const rows = [];
+  for (const [id, p] of Object.entries(playersMap)) {
+    if (!p) continue;
+    const t = String(p.team || '').toUpperCase();
+    const pp = String(p.pos || '').toUpperCase().replace('DEF','DST');
+    if (t === T && pp === P) {
+      const order = (p.depth_chart_order != null) ? Number(p.depth_chart_order) : 999;
+      const spot  = p.depth_chart_position || P;
+      rows.push({ player_id: id, name: p.fn || id, order, spot });
+    }
+  }
+  rows.sort((a,b)=> a.order - b.order || a.name.localeCompare(b.name));
+  return rows;
+}
+
+//one-week NFL stat line (PPR) for a player
+export async function getPlayerWeekStats(season, week, pid) {
+  try {
+    const arr = await jgetAbs(`https://api.sleeper.com/stats/nfl/${season}/${week}?season_type=regular&player_id=${pid}`);
+    const rec = Array.isArray(arr) ? arr.find(x => (x.player_id===pid || x.id===pid)) : null;
+    if (!rec) return null;
+    const s = rec.stats || {};
+    const ppr = s.fantasy_points_ppr ?? s.fantasy_points ?? s.ppr ?? 0;
+    return { week, ppr: Number(ppr || 0), stats: s, team: rec.team, opponent: rec.opponent || rec.opp };
+  } catch { return null; }
+}
+
+// Sum a list of keys from a stat object, tolerant of aliases
+function __sumStat(s, keys) {
+  for (const k of keys) { if (s && s[k] != null) return Number(s[k]) || 0; }
+  return 0;
+}
+
+// Get a player's total usage over the last N weeks (QB/RB/WR/TE/K)
+export async function getRecentUsageScore(season, endWeek, pid, pos, lastN=3) {
+  const ck = `${season}:${endWeek}:${pid}`;
+  if (__usageCache.has(ck)) return __usageCache.get(ck);
+  const start = Math.max(1, endWeek - (lastN - 1));
+  let score = 0;
+  for (let w = start; w <= endWeek; w++) {
+    try {
+      const arr = await jgetAbs(`https://api.sleeper.com/stats/nfl/${season}/${w}?season_type=regular&player_id=${pid}`);
+      const rec = Array.isArray(arr) ? arr.find(x => x.player_id===pid || x.id===pid) : null;
+      const s = rec?.stats || {};
+      if (pos === 'QB') {
+        score += __sumStat(s, ['pass_att','pass_attempts','passing_attempts','pa']);
+      } else if (pos === 'RB') {
+        const rush = __sumStat(s, ['rush_att','rush_attempts','rushing_attempts','ra']);
+        const tgt  = __sumStat(s, ['tgt','targets','rec_tgt','receiving_targets']);
+        score += rush + tgt; // touches + targets
+      } else if (pos === 'WR' || pos === 'TE') {
+        score += __sumStat(s, ['tgt','targets','rec_tgt','receiving_targets']); // target share proxy
+      } else if (pos === 'K') {
+        const fga = __sumStat(s, ['fga','kicking_fg_attempts','field_goals_attempts']);
+        const xpa = __sumStat(s, ['xpa','kicking_xp_attempts','extra_points_attempts']);
+        score += fga + xpa;
+      } else if (pos === 'DEF' || pos === 'DST') {
+        score += 1; // just to include
+      }
+    } catch {}
+  }
+  __usageCache.set(ck, score);
+  return score;
+}
+
+// Build a full-team depth chart using recent usage as ranking.
+// Returns { QB: [...], RB: [...], WR1:[...], WR2:[...], WR3:[...], TE:[...], K:[...], DST:[...] }
+export async function buildTeamDepthByUsage(team, season, endWeek, playersMap) {
+  const T = String(team || '').toUpperCase();
+  const k = `TD:${season}:${endWeek}:${T}`;
+  if (__teamDepthCache.has(k)) return __teamDepthCache.get(k);
+  // try localStorage
+  try {
+    const fromLS = localStorage.getItem(k);
+    if (fromLS) {
+      const val = JSON.parse(fromLS);
+      __teamDepthCache.set(k, val);
+      return val;
+    }
+  } catch {}
+  const bucket = { QB:[], RB:[], WR:[], TE:[], K:[], DST:[] };
+
+  // collect all players on that NFL team by position
+  for (const [pid, p] of Object.entries(playersMap)) {
+    if (!p) continue;
+    const pos = (p.pos || '').toUpperCase();
+    const t   = (p.team || '').toUpperCase();
+    if (t !== T) continue;
+    if (!['QB','RB','WR','TE','K','DEF','DST'].includes(pos)) continue;
+    const normPos = (pos === 'DEF') ? 'DST' : pos;
+    bucket[normPos].push({ pid, name: p.fn || pid, pos: normPos });
+  }
+
+  // score & sort each bucket
+  for (const key of Object.keys(bucket)) {
+    const arr = bucket[key];
+    await Promise.all(arr.map(async (r) => {
+      r.usage = await getRecentUsageScore(season, endWeek, r.pid, r.pos, 3);
+      // Light tiebreaker: prefer players that had a depth_chart_order in the static blob
+      const pm = playersMap[r.pid];
+      r.order = (pm && pm.depth_chart_order != null) ? Number(pm.depth_chart_order) : 999;
+    }));
+    arr.sort((a,b)=> (b.usage - a.usage) || (a.order - b.order) || a.name.localeCompare(b.name));
+  }
+
+  // split WR into WR1/WR2/WR3 (top 3)
+  const wr1 = bucket.WR[0] ? [bucket.WR[0]] : [];
+  const wr2 = bucket.WR[1] ? [bucket.WR[1]] : [];
+  const wr3 = bucket.WR[2] ? [bucket.WR[2]] : [];
+  const result = {
+    QB: bucket.QB,
+    RB: bucket.RB,
+    WR1: wr1, WR2: wr2, WR3: wr3,
+    TE: bucket.TE,
+    K:  bucket.K,
+    DST: bucket.DST
+  };
+  __teamDepthCache.set(k, result);
+  try { localStorage.setItem(k, JSON.stringify(result)); } catch {}
+  return result;
 }
