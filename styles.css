@@ -882,3 +882,68 @@ main, #main-content { min-width: 0; }      /* explicit, in case you target main 
   text-align: right;
   width: 100%;
 }
+
+/* --- Desktop: keep right team's title right-aligned --- */
+.toplist.home .toplist-title {
+  text-align: right;
+  width: 100%;
+}
+
+/* --- Mobile layout polish + visibility fix --- */
+@media (max-width: 780px) {
+  /* Allow scoreboard container to scroll horizontally if content is wide */
+  #scoreboard {
+    overflow-x: auto;
+    padding-inline: 10px;
+  }
+
+  /* Ensure each card fits better within viewport */
+  .score-card {
+    min-width: 100%;
+    box-sizing: border-box;
+    margin-right: 10px;
+  }
+
+  /* Stack details vertically */
+  .details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Left-align right team's info when stacked */
+  .toplist.home .toplist-title,
+  .toplist.home .name,
+  .toplist.home .pts,
+  .toplist.home .line {
+    text-align: left !important;
+  }
+
+  /* Simplify toplist rows: name ..... pts */
+  .toplist-row {
+    grid-template-columns: 1fr auto !important;
+    gap: 8px !important;
+  }
+  .toplist .pts {
+    justify-self: end;
+  }
+
+  /* Slightly smaller team logos & scores to fit narrow width */
+  .team-col .logo {
+    width: 42px;
+    height: 42px;
+  }
+  .team-col .big-score {
+    font-size: 1.9rem;
+  }
+
+  /* Padding and spacing adjustments */
+  .score-grid {
+    gap: 6px;
+  }
+
+  .toplist {
+    padding-inline: 2px;
+  }
+  .toplist .toplist-title {
+    margin-bottom: 6px;
+  }
+}
