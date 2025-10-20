@@ -34,6 +34,7 @@ const loaders = {
   transactions: () => import('./transactions.js').then(m => m.default()),
   drafts: () => import('./drafts.js').then(m => m.default()),
   history: () => import('./history.js').then(m => m.default()),
+  scoreboard: () => import(`./scores.js?v=mirror1`).then(m => m.default({ pollMs: 20000 })),
 };
 
 export function showPage(id) {
