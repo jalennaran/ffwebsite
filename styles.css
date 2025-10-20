@@ -947,3 +947,67 @@ main, #main-content { min-width: 0; }      /* explicit, in case you target main 
     margin-bottom: 6px;
   }
 }
+
+/* --- Ultra-mobile fit: avoid horizontal scrolling --- */
+@media (max-width: 480px) {
+  /* shrink card padding and internal gaps */
+  .score-card {
+    padding: 8px 10px;
+    border-radius: 14px;
+  }
+
+  .score-grid {
+    grid-template-columns: 1fr auto 1fr;
+    gap: 4px;
+    align-items: center;
+  }
+
+  /* smaller team logos and scores */
+  .team-col .logo {
+    width: 32px;
+    height: 32px;
+  }
+
+  .team-col .abbr {
+    font-size: 0.95rem;
+  }
+
+  .team-col .big-score {
+    font-size: 1.6rem;
+    min-width: 2ch;
+  }
+
+  /* tighten center chip and status */
+  .center-col {
+    padding: 6px 8px;
+    gap: 4px;
+    border-radius: 12px;
+  }
+
+  .center-col .status {
+    font-size: 0.8rem;
+  }
+
+  .pill,
+  .chip {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+  }
+
+  /* allow long team names or networks to wrap safely */
+  .center-col,
+  .team-col .info {
+    overflow-wrap: anywhere;
+  }
+
+  /* remove any overflow at container level */
+  #scoreboard {
+    overflow-x: hidden;
+    padding-inline: 0;
+  }
+
+  /* optional: reduce font sizes in details for smaller view */
+  .details {
+    font-size: 0.9rem;
+  }
+}
