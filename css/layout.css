@@ -236,7 +236,9 @@ body.light {
 @media (max-width: 640px){
   /* Give the drawer most of the viewport so text has room */
   .sidebar{
-    width: min(96vw, var(--sb-w));
+    width: 85vw;
+    max-width: 350px;
+    overflow-x: hidden;
   }
 
   /* Let link text wrap instead of showing H..., N..., etc. */
@@ -248,5 +250,8 @@ body.light {
     overflow: visible !important;
     text-overflow: clip !important; /* or unset */
     line-height: 1.25;
+  }
+  body {
+    overflow-x: hidden;
   }
 }
