@@ -231,3 +231,22 @@ body.light {
   backdrop-filter: blur(20px) saturate(120%) !important;
   -webkit-backdrop-filter: blur(20px) saturate(120%) !important;
 }
+
+/* ---- Mobile sidebar fixes ---- */
+@media (max-width: 640px){
+  /* Give the drawer most of the viewport so text has room */
+  .sidebar{
+    width: min(96vw, var(--sb-w));
+  }
+
+  /* Let link text wrap instead of showing H..., N..., etc. */
+  .sidebar a{
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important; /* or unset */
+    line-height: 1.25;
+  }
+}
