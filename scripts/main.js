@@ -18,13 +18,6 @@ window.showPage = showPage;
 
 /* ---------- Boot ---------- */
 document.addEventListener('DOMContentLoaded', () => {
-  // 1) Theme first so there’s no flash
-  initTheme();
-
-  // 2) Wire the theme toggle button
-  const themeBtn = document.getElementById('themeToggle');
-  themeBtn?.addEventListener('click', toggleTheme);
-
   // 3) Sidebar wiring
   const sidebar = document.getElementById('sidebar');
   const overlay = document.getElementById('overlay');

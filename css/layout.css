@@ -75,7 +75,7 @@ main, #main-content { min-width: 0; }
 
 :root{
   --sb-w: 300px;
-  --sb-bg: rgba(20,20,22,.52);            /* frosted */
+  --sb-bg: rgba(15, 15, 18, 0.6);            /* frosted */
   --sb-border: rgba(255,255,255,.18);
   --sb-hover: rgba(255,255,255,.10);
   --sb-active: rgba(255,255,255,.14);
@@ -208,4 +208,26 @@ main, #main-content { min-width: 0; }
   white-space: nowrap;     /* keep text on one line */
   overflow: hidden;        /* hide overflow just in case */
   text-overflow: ellipsis; /* optional: add "..." if text is too long */
+}
+
+/* === FORCE PERMANENT DARK / GLASS SIDEBAR === */
+:root,
+html[data-theme="dark"],
+html[data-theme="light"],
+body.dark,
+body.light {
+  /* sidebar tokens */
+  --sb-bg: rgba(15,15,18,0.60) !important;   /* translucent */
+  --sb-border: rgba(255,255,255,0.18) !important;
+  --sb-hover: rgba(255,255,255,0.10) !important;
+  --sb-active: rgba(255,255,255,0.14) !important;
+  --sb-text: #f5f7ff !important;
+  --sb-muted: #c7c9d3 !important;
+}
+
+/* belt & suspenders: ensure blur is on */
+.sidebar {
+  background: var(--sb-bg) !important;
+  backdrop-filter: blur(20px) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(120%) !important;
 }
