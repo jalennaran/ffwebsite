@@ -4,18 +4,18 @@
 }
 
 aside {
-    width: 200px;
-    background-color: var(--sb-bg);
-    color: var(--sb-text);
-    padding: 1em;
-    padding-top: 3.5em;
-    position: fixed;
-    left: 0;
-    top: 0;
-    height: 100%;
-    transform: translateX(-100%);
-    transition: transform 0.4s ease;
-    z-index: 1000;
+  width: 200px;
+  background-color: var(--sb-bg);
+  color: var(--sb-text);
+  padding: 1em;
+  /* REMOVE this line: padding-top: 3.5em; */
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100%;
+  transform: translateX(-100%);
+  transition: transform 0.4s ease;
+  z-index: 1000;
 }
 
 aside.visible {
@@ -125,7 +125,7 @@ main, #main-content { min-width: 0; }
 
 /* NAV */
 .sb-nav{
-  padding: 10px;
+  padding: 0;
   overflow: auto;
 }
 .sb-nav a{
@@ -202,4 +202,10 @@ main, #main-content { min-width: 0; }
 }
 .sb-nav a:focus-visible{
   outline: 2px solid #fff; outline-offset: 2px; border-radius: 14px;
+}
+
+.sb-nav a {
+  white-space: nowrap;     /* keep text on one line */
+  overflow: hidden;        /* hide overflow just in case */
+  text-overflow: ellipsis; /* optional: add "..." if text is too long */
 }
