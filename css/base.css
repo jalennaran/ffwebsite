@@ -23,7 +23,7 @@ header {
   /* Use padding instead for spacing */
   padding: 3rem 1rem;
 
-  background-image: url('/ffwebsite/images/FieldLights.jpeg');
+  background-image: url('/../images/FieldLights.jpeg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
