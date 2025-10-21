@@ -1,0 +1,80 @@
+/* --- Card wrapper + meta --- */
+.draft-card { padding: 14px 16px; }
+.draft-meta { color:#666; margin: 6px 0 12px; }
+
+/* --- Horizontal scroller --- */
+.draft-scroller {
+  overflow-x: auto;
+  overflow-y: hidden;
+  width: 100%;
+  max-width: 100%;
+  padding: 0 10px 8px 0;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable both-edges;
+  scroll-snap-type: x mandatory;
+}
+.draft-scroller::-webkit-scrollbar { height: 8px; }
+.draft-scroller::-webkit-scrollbar-track { background: transparent; }
+.draft-scroller::-webkit-scrollbar-thumb { background: rgba(150,150,150,.55); border-radius: 4px; }
+.draft-scroller::-webkit-scrollbar-thumb:hover { background: rgba(120,120,120,.75); }
+@supports (scrollbar-width: thin){
+  .draft-scroller { scrollbar-width: thin; scrollbar-color: rgba(150,150,150,.55) transparent; }
+}
+
+/* --- The grid board --- */
+.draft-board{
+  display: grid;
+  grid-template-columns: repeat(10, 185px); /* 10 tiles per row (matches old layout) */
+  gap: 10px;
+  width: max-content;       /* key: don’t shrink to container */
+}
+
+.tile{
+  border: 1px solid #e5e7eb;           /* pastel border colors override this below */
+  border-radius: 12px;
+  padding: 8px 10px;
+  background: #fff;                     /* will be overridden by pos-* backgrounds */
+  background-clip: padding-box;
+  box-shadow: 0 1px 0 rgba(0,0,0,.03);
+  scroll-snap-align: start;
+}
+.tile .line1,
+.tile .line2,
+.tile .line3 { line-height: 1.15; }
+
+.tile .line1{
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+  font-weight:700; font-size: .8rem;
+}
+.tile .line2{ font-size:.92rem; opacity:.85; margin-top:2px; }
+.tile .line3{
+  display:flex; align-items:center; gap:8px; margin-top:8px;
+  font-size:.7rem; opacity:.9;
+}
+.tile .avatar{
+  width:20px; height:20px; border-radius:50%; object-fit:cover;
+  border:1px solid rgba(0,0,0,.08);
+}
+
+/* --- Position palettes (pastels) --- */
+.pos-QB { background:#f4d3e9; border-color:#eab6d9; }
+.pos-RB { background:#d7f5e4; border-color:#bfead4; }
+.pos-WR { background:#d9e8ff; border-color:#c3d9ff; }
+.pos-TE { background:#f8e3c7; border-color:#f0d0a8; }
+.pos-K  { background:#e8b1f1; border-color:#e38fef; }
+.pos-DST{ background:#efbb84; border-color:#e3e3e3; }
+.pos-UNK{ background:#eef1f5; border-color:#e3e6ea; }
+
+/* --- Container min-width guards (prevent squish) --- */
+#container > * { min-width: 0; }
+main, #main-content { min-width: 0; }
+.news-card { min-width: 0; }
+
+/* --- Responsive nicety: slightly narrower tiles on smaller screens --- */
+@media (max-width: 1200px){
+  .draft-board{ grid-template-columns: repeat(10, 170px); }
+}
+@media (max-width: 900px){
+  .draft-board{ grid-template-columns: repeat(10, 160px); }
+}
+

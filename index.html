@@ -2,33 +2,57 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Lads Fantasy Football</title>
-    <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Lads Fantasy Football</title>
+
+  <!-- Shared / Base -->
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/utilities.css">
+
+  <!-- Components -->
+  <link rel="stylesheet" href="css/components/cards.css">
+  <link rel="stylesheet" href="css/components/tables.css">
+  <link rel="stylesheet" href="css/components/modal.css">
+
+  <!-- Pages / Sections -->
+  <link rel="stylesheet" href="css/pages/matchups.css">
+  <link rel="stylesheet" href="css/pages/rosters.css">
+  <link rel="stylesheet" href="css/pages/drafts.css">
+  <link rel="stylesheet" href="css/pages/scoreboard.css">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <button id="toggleSidebar">
-        <span class="icon">☰</span><span class="text">Menu</span>
-    </button>
     <div id="overlay"></div>
-    <aside id="sidebar">
-        <nav>
-            <ul>
-                <li class="menu-item" onclick="showPage('home')">Homepage</li>
-                <li class="menu-item" onclick="showPage('scoreboard')">NFL Scoreboard</li>
-                <li class="menu-item" onclick="showPage('rosters')">Rosters</li>
-                <li class="menu-item" onclick="showPage('drafts')">Previous Drafts</li>
-                <li class="menu-item" onclick="showPage('matchups')">This Weeks Matchups</li>
-                <li class="menu-item" onclick="showPage('standings')">League Standings</li>
-                <li class="menu-item" onclick="showPage('transactions')">Transactions</li>
-                <li class="menu-item" onclick="showPage('history')">League History</li>
-                <li class="menu-item" onclick="showPage('about')">About</li>
-            </ul>
-        </nav>
+    <aside id="sidebar" class="sidebar">
+    <div class="sb-header">
+        <div class="sb-logo">🏈</div>
+        <div class="sb-title">The Lads FF</div>
+    </div>
+    <nav class="sb-nav" aria-label="Primary">
+        <a href="#" data-route="home">Homepage</a>
+        <a href="#" data-route="scoreboard">NFL Scoreboard</a>
+        <a href="#" data-route="rosters">Rosters</a>
+        <a href="#" data-route="drafts">Previous Drafts</a>
+        <a href="#" data-route="matchups">This Week’s Matchups</a>
+        <a href="#" data-route="standings">League Standings</a>
+        <a href="#" data-route="transactions">Transactions</a>
+        <a href="#" data-route="history">League History</a>
+        <a href="#" data-route="about">About</a>
+    </nav>
+    <div class="sb-footer">
+        <span class="badge">v1.0</span>
+    </div>
     </aside>
-    
+    <div class="topbar">
+        <button id="toggleSidebar" class="glass-btn" aria-label="Open menu">☰</button>
+        <button id="themeToggle" class="glass-btn" aria-label="Toggle theme">🌓</button>
+        <span class="site-tag">The Lads FF</span>
+    </div>
     <div id="content-wrapper">
         <header>
             <h1>Fantasy Football Home</h1>

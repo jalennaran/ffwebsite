@@ -1,0 +1,85 @@
+.ros-card { padding: 0; overflow: hidden; }
+
+.ros-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 16px; cursor:pointer;
+}
+
+.ros-title { font-weight:700; }
+
+.ros-body { display:none; border-top:1px solid #eee; background:#fafafa; }
+
+.ros-body.open { display:block; }
+
+.ros-inner { padding:12px; }
+
+.group { margin-top:8px; }
+
+.group-title { font-size:.85rem; color:#666; margin-bottom:4px; }
+
+.group-title { font-size:.85rem; color:#666; margin:10px 0 6px; }
+
+.player-row {
+  display:grid; grid-template-columns:68px 1fr; gap:8px;
+  padding:6px 8px; border-bottom:1px solid #f1f1f1;
+  background:#fff;
+}
+
+.pmeta { color:#666; font-size:.9rem; }
+
+.pos {
+  display:inline-block; font-size:.75rem; padding:2px 6px; border-radius:999px;
+  border:1px solid #ddd; background:#f8f8f8; margin-right:6px;
+}
+
+.pos {
+  display:inline-block; font-size:.75rem; padding:2px 8px; border-radius:999px;
+  border:1px solid #ddd; background:#f8f8f8; margin-right:6px; font-weight:700;
+  min-width:40px; text-align:center;
+}
+
+.pos  { opacity: .85; font-weight: 700; }
+
+.pos.qb { background:#f4d3e9; border-color:#eab6d9; }
+
+.pos.rb { background:#d7f5e4; border-color:#bfead4; }
+
+.pos.wr { background:#d9e8ff; border-color:#c3d9ff; }
+
+.pos.te { background:#f8e3c7; border-color:#f0d0a8; }
+
+.pos.k  { background:#e8b1f1; border-color:#e38fef; }
+
+.pos.dst { background:#efbb84; border-color:#e3e3e3; }
+
+#matchups .match-scroller {
+  padding-right: 32px;   /* try 24–48px if you want more/less */
+  scroll-padding-right: 32px;
+}
+
+.player-row {
+  grid-template-columns: 68px 1fr max-content max-content;
+}
+
+.cell {
+  display:flex; align-items:center; gap:6px;
+  white-space:nowrap;
+}
+
+.badge {
+  font-size:.72rem; padding:2px 6px; border-radius:6px; border:1px solid #e5e7eb; background:#fff;
+}
+
+.pos.empty {
+  display: inline-block;
+  width: 34px;
+  height: 22px;
+  border-radius: 12px;
+  background-color: #e0e0e0;
+  opacity: 0.5;
+}
+
+.empty-name {
+  color: #999;
+  font-style: italic;
+}

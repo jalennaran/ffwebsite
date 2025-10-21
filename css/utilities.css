@@ -1,0 +1,40 @@
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border: 1px solid #ddd;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  margin-right: 6px;
+  background: #fafafa;
+}
+
+.badge {
+  font-size:.72rem; padding:2px 6px; border-radius:6px; border:1px solid #e5e7eb; background:#fff;
+}
+
+.pills { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.pill {
+  display: inline-block; padding: 3px 10px; border-radius: 999px; border: 1px solid #e5e5e5;
+  background: #fff; font-size: 0.9rem;
+}
+
+.pill {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .3px;
+  background: rgba(255,255,255,.18);
+  border: 1px solid rgba(255,255,255,.25);
+  color: #fff;
+  text-shadow: 0 1px 1px rgba(0,0,0,.3);
+}
+
+.pill small { opacity: 0.7; margin-left: 6px; }
+
+.pill.gain { border-color: #d0f1d6; background: #f0faf2; }
+
+.pill.loss { border-color: #ffd7d7; background: #fff2f2; }
+
+.pill.pick { border-style: dashed; }

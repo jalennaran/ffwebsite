@@ -1,0 +1,112 @@
+.match-card { padding: 0; overflow: hidden; }
+
+.match-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 16px; cursor:pointer;
+}
+
+.match-title { font-weight:700; }
+
+.match-score { font-weight:700; opacity:.9; }
+
+.match-body { display:none; border-top:1px solid #eee; background:#fafafa; }
+
+.match-body.open { display:block; }
+
+.match-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:12px; }
+
+.team-col { background:#fff; border:1px solid #eee; border-radius:8px; padding:10px; }
+
+.team-col { padding: 6px 10px; }
+
+.team-name { font-weight:700; margin-bottom:8px; display:block; }
+
+.team-name {
+  font-family: sportsFont;
+  font-size: 1.05rem;
+  letter-spacing: .3px;
+}
+
+.group { margin-top:8px; }
+
+.group-title { font-size:.85rem; color:#666; margin-bottom:4px; }
+
+.group-title { font-size:.85rem; color:#666; margin:10px 0 6px; }
+
+.player-row {
+  display:grid; grid-template-columns:68px 1fr 64px; gap:8px;
+  padding:6px 8px; border-bottom:1px solid #f1f1f1;
+}
+
+.player-row:last-child { border-bottom:none; }
+
+.pos {
+  display:inline-block; font-size:.75rem; padding:2px 6px; border-radius:999px;
+  border:1px solid #ddd; background:#f8f8f8; margin-right:6px;
+}
+
+.pos {
+  display:inline-block; font-size:.75rem; padding:2px 8px; border-radius:999px;
+  border:1px solid #ddd; background:#f8f8f8; margin-right:6px; font-weight:700;
+  min-width:40px; text-align:center;
+}
+
+.pos  { opacity: .85; font-weight: 700; }
+
+.pmeta { color:#666; font-size:.9rem; }
+
+.pts { text-align:right; font-weight:700; }
+
+.pts  { font-weight: 900; font-variant-numeric: tabular-nums; }
+
+.pts { text-align: left; }
+
+.pts {
+    justify-self: end;
+  }
+
+.match-left { display: flex; flex-direction: column; gap: 2px; }
+
+.match-avg  { font-size: 0.9em; opacity: 0.7; }
+
+/* --- Horizontal scroller for wide matchup grids (mobile-friendly) --- */
+/* Scroll only when needed; keep symmetrical gutters */
+/* Keep header at 16px; match body to it */
+.match-header { padding: 14px 16px; }
+.match-body   { padding: 0 16px 16px; }  /* <<< consistent side padding */
+
+/* Scroller: visually align to card edges, but preserve inner gutters */
+.match-scroller {
+  margin: 0 -16px;          /* stretch to the card border */
+  padding: 0 16px 8px;      /* restore equal L/R gutters inside */
+  overflow-x: auto;
+  overflow-y: hidden;
+  width: auto;              /* not forced; follows container */
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable both-edges;
+}
+
+/* Scrollbar styling */
+.match-scroller::-webkit-scrollbar { height: 8px; }
+.match-scroller::-webkit-scrollbar-track { background: transparent; }
+.match-scroller::-webkit-scrollbar-thumb { background: rgba(150,150,150,.55); border-radius: 4px; }
+.match-scroller::-webkit-scrollbar-thumb:hover { background: rgba(120,120,120,.75); }
+@supports (scrollbar-width: thin){
+  .match-scroller { scrollbar-width: thin; scrollbar-color: rgba(150,150,150,.55) transparent; }
+}
+
+/* Grid: fills when wide, scrolls when narrow (no extra padding here) */
+.match-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(320px, 1fr));
+  gap: 12px;
+  width: 100%;
+}
+
+@media (max-width: 900px){
+  .match-grid { grid-template-columns: repeat(2, minmax(300px, 1fr)); }
+}
+@media (max-width: 700px){
+  .match-grid { grid-template-columns: repeat(2, minmax(260px, 1fr)); }
+}
+
