@@ -1,0 +1,82 @@
+/* NFL Team Color Variables */
+:root {
+  /* AFC North */
+  --bal-primary: #241773;
+  --bal-secondary: #000000;
+  --cin-primary: #FB4F14;
+  --cin-secondary: #000000;
+  --cle-primary: #FF3C00;
+  --cle-secondary: #311D00;
+  --pit-primary: #FFB612;
+  --pit-secondary: #101820;
+
+  /* AFC South */
+  --hou-primary: #03202F;
+  --hou-secondary: #A71930;
+  --ind-primary: #002C5F;
+  --ind-secondary: #A2AAAD;
+  --jax-primary: #006778;
+  --jax-secondary: #9F792C;
+  --ten-primary: #0C2340;
+  --ten-secondary: #4B92DB;
+
+  /* AFC East */
+  --buf-primary: #00338D;
+  --buf-secondary: #C60C30;
+  --mia-primary: #008E97;
+  --mia-secondary: #FC4C02;
+  --ne-primary: #002244;
+  --ne-secondary: #C60C30;
+  --nyj-primary: #125740;
+  --nyj-secondary: #000000;
+
+  /* AFC West */
+  --den-primary: #FB4F14;
+  --den-secondary: #002244;
+  --kc-primary: #E31837;
+  --kc-secondary: #FFB81C;
+  --lv-primary: #000000;
+  --lv-secondary: #A5ACAF;
+  --lac-primary: #0080C6;
+  --lac-secondary: #FFC20E;
+
+  /* NFC North */
+  --chi-primary: #0B162A;
+  --chi-secondary: #C83803;
+  --det-primary: #0076B6;
+  --det-secondary: #B0B7BC;
+  --gb-primary: #203731;
+  --gb-secondary: #FFB612;
+  --min-primary: #4F2683;
+  --min-secondary: #FFC62F;
+
+  /* NFC South */
+  --atl-primary: #A71930;
+  --atl-secondary: #000000;
+  --car-primary: #0085CA;
+  --car-secondary: #101820;
+  --no-primary: #D3BC8D;
+  --no-secondary: #101820;
+  --tb-primary: #D50A0A;
+  --tb-secondary: #34302B;
+
+  /* NFC East */
+  --dal-primary: #003594;
+  --dal-secondary: #869397;
+  --nyg-primary: #0B2265;
+  --nyg-secondary: #A71930;
+  --phi-primary: #004C54;
+  --phi-secondary: #A5ACAF;
+  --was-primary: #773141;
+  --was-secondary: #FFB612;
+
+  /* NFC West */
+  --ari-primary: #97233F;
+  --ari-secondary: #000000;
+  --sf-primary: #AA0000;
+  --sf-secondary: #B3995D;
+  --sea-primary: #002244;
+  --sea-secondary: #69BE28;
+  --lar-primary: #003594;
+  --lar-secondary: #FFA300;
+}
