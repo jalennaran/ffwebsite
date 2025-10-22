@@ -153,8 +153,17 @@ export async function openPlayerPanel(pid) {
   modal.innerHTML = ''; // reset
 
   const sheet = el('div', { class: 'sheet' });
+  
+  // Add team color variables to the sheet
+  function setTeamColors(team) {
+    if (!team) return;
+    team = team.toLowerCase();
+    sheet.style.setProperty('--team-primary', `var(--${team}-primary)`);
+    sheet.style.setProperty('--team-secondary', `var(--${team}-secondary)`);
+  }
+
   sheet.append(
-    el('div', { class: 'pp-hero' }, el('div', { class: 'pp-title', html: 'Loading…' })),
+    el('div', { class: 'pp-title', html: 'Loading…' }),
     el('div', { class: 'tabs' },
       el('button', { class: 'tab active', 'data-tab':'points',   html:'Weekly Points' }),
       el('button', { class: 'tab',         'data-tab':'gamelog',  html:'Game Log' }),
@@ -180,6 +189,9 @@ export async function openPlayerPanel(pid) {
     const [players, season, week] = await Promise.all([ getPlayersMap(), getCurrentSeason(), getCurrentWeek() ]);
     const p = players[pid] || {};
     const name = p.fn || pid;
+    if (p.team) {
+      setTeamColors(p.team);
+    }
     sheet.querySelector('.pp-title').textContent = `${name} ${p.pos ? `(${p.pos})` : ''} ${p.team ? `· ${p.team}` : ''}`;
 
     // tabs click
@@ -334,7 +346,7 @@ export async function openPlayerPanel(pid) {
     const group = usageDepth[key] || [];
     if (!group.length) return;
     const title = document.createElement('div');
-    title.className = 'group-title';
+    title.className = 'depth-position';
     title.textContent = label;
     wrap.appendChild(title);
 

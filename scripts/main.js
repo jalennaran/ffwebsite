@@ -58,28 +58,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 5) Small view helpers
   function renderHome() {
-    const root = document.getElementById('content-wrapper');
-    if (!root) return;
+    const main = document.getElementById('main-content');
+    if (!main) return;
     if (!document.getElementById('home')) {
-      root.innerHTML = `
+      const html = `
         <section class="container" id="home">
           <h1 class="display">Welcome to the home of The Lads' fantasy football league</h1>
           <p>This page allows you to view both current and past information about our league.</p>
           <p>Click the menu button (☰) to access different information from the Sleeper/ESPN APIs.</p>
           <p><em>*this page is a work in progress*</em></p>
         </section>`;
+      main.insertAdjacentHTML('beforeend', html);
     }
   }
 
   function renderAbout() {
-    const root = document.getElementById('content-wrapper');
-    if (!root) return;
+    const main = document.getElementById('main-content');
+    if (!main) return;
     if (!document.getElementById('about')) {
-      root.innerHTML = `
+      const html = `
         <section class="container" id="about">
           <h1 class="display">About</h1>
           <p>Info about the site.</p>
         </section>`;
+      main.insertAdjacentHTML('beforeend', html);
     }
   }
 

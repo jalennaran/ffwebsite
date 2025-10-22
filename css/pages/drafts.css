@@ -68,7 +68,6 @@
 /* --- Container min-width guards (prevent squish) --- */
 #container > * { min-width: 0; }
 main, #main-content { min-width: 0; }
-.news-card { min-width: 0; }
 
 /* --- Responsive nicety: slightly narrower tiles on smaller screens --- */
 @media (max-width: 1200px){

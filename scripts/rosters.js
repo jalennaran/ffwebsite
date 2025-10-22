@@ -67,7 +67,8 @@ export default async function loadRosters() {
       const taxiList     = byPosThenName(taxi.map(pick));
 
       // card
-      const card   = el('div', { class:'news-card ros-card' });
+      const card = el('div', { class:'news-card ros-card' });
+
       const header = el('div', { class:'ros-header', role:'button', tabindex:'0' });
       header.append(el('div', { class:'ros-title', html: teamName }),
                     el('div', { class:'pmeta', html:`Week ${week}` }));
