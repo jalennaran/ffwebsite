@@ -1,22 +1,23 @@
 .standings-table {
   width: 100%;
   border-collapse: collapse;
-  background: #fff;
-  border: 1px solid #ddd;
+  background: #1b1b1b;
+  border: 1px solid #2e2e2e;
   border-radius: 8px;
   overflow: hidden;
 }
 .standings-table th, .standings-table td {
   padding: 10px 12px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #2e2e2e;
   text-align: left;
+  color: #ffffff;
 }
-.standings-table tr:hover { background: #f9f9f9; }
+.standings-table tr:hover { background: #2e2e2e; }
 
 .table {
-  width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #eee; border-radius: 8px; overflow: hidden;
+  width: 100%; border-collapse: collapse; background: #1b1b1b; border: 1px solid #2e2e2e; border-radius: 8px; overflow: hidden;
 }
 
-.table th, .table td { padding: 8px 10px; border-bottom: 1px solid #f3f3f3; text-align: left; }
+.table th, .table td { padding: 8px 10px; border-bottom: 1px solid #2e2e2e; text-align: left; color: #ffffff; }
 
-.table tr:hover { background: #fafafa; }
+.table tr:hover { background: #2e2e2e; }

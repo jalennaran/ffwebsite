@@ -1,0 +1,160 @@
+/* Transaction Cards */
+.tx-card {
+  background: linear-gradient(125deg, 
+    rgba(44, 20, 72, 0.95),
+    rgba(15, 10, 29, 0.95)
+  );
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 16px;
+  margin-bottom: 16px;
+  backdrop-filter: blur(6px);
+  overflow: hidden;
+}
+
+/* Transaction Header */
+.tx-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255,255,255,.1);
+}
+
+.tx-icon {
+  font-size: 1.4rem;
+  min-width: 32px;
+}
+
+.tx-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: rgba(255,255,255,.95);
+  letter-spacing: 0.02em;
+}
+
+.tx-meta {
+  padding: 8px 20px;
+  color: rgba(255,255,255,.7);
+  font-size: 0.9rem;
+  background: rgba(255,255,255,.02);
+}
+
+/* Transaction Grid (for trades) */
+.tx-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  padding: 16px 20px;
+}
+
+.tx-team {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tx-team-name {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: rgba(255,255,255,.9);
+  padding: 8px 0;
+}
+
+/* Transaction Single View (for waivers/FA) */
+.tx-single {
+  padding: 16px 20px;
+}
+
+.tx-badges {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.tx-badge {
+  background: rgba(255,255,255,.08);
+  color: rgba(255,255,255,.9);
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border: 1px solid rgba(255,255,255,.15);
+  min-width: 80px;
+  text-align: center;
+}
+
+.tx-section-label {
+  color: rgba(255,255,255,.7);
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+}
+
+/* Pills for players and picks */
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.1);
+  backdrop-filter: blur(4px);
+}
+
+.pill .player-name {
+  color: rgba(255,255,255,.95);
+}
+
+.pill small {
+  margin-left: 6px;
+  opacity: 0.75;
+  font-size: 0.85em;
+  color: rgba(255,255,255,.9);
+}
+
+.pill.gain {
+  background: rgba(35, 134, 54, 0.35);
+  border-color: rgba(35, 134, 54, 0.5);
+  color: rgba(255, 255, 255, 1);
+}
+
+.pill.loss {
+  background: rgba(185, 28, 28, 0.35);
+  border-color: rgba(185, 28, 28, 0.5);
+  color: rgba(255, 255, 255, 1);
+}
+
+.pill.pick {
+  background: rgba(99, 89, 133, 0.25);
+  border-color: rgba(99, 89, 133, 0.4);
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 1);
+}
+
+/* Hover effects */
+.tx-card {
+  transition: transform 0.2s ease;
+}
+
+.tx-card:hover {
+  transform: translateY(-2px);
+}
+
+.pill {
+  transition: all 0.2s ease;
+}
+
+.pill:hover {
+  filter: brightness(1.1);
+}

@@ -1,6 +1,34 @@
 /* --- Card wrapper + meta --- */
-.draft-card { padding: 14px 16px; }
-.draft-meta { color:#666; margin: 6px 0 12px; }
+.draft-card { 
+  padding: 20px;
+  background: linear-gradient(125deg, 
+    rgba(44, 20, 72, 0.95),
+    rgba(15, 10, 29, 0.95)
+  );
+  border-radius: 16px;
+  box-shadow: 0 3px 10px rgba(0,0,0,.08);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,.1);
+  margin-bottom: 16px;
+  overflow: hidden;
+  position: relative;
+}
+
+.draft-card h3 {
+  padding: 16px 20px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.3rem;
+  color: rgba(255,255,255,.95);
+  letter-spacing: 0.02em;
+  margin: 0;
+  border-bottom: 1px solid rgba(255,255,255,.15);
+}
+
+.draft-meta { 
+  color: rgba(255,255,255,.7);
+  margin: 12px 20px;
+  font-size: 0.9rem;
+}
 
 /* --- Horizontal scroller --- */
 .draft-scroller {
@@ -8,17 +36,56 @@
   overflow-y: hidden;
   width: 100%;
   max-width: 100%;
-  padding: 0 10px 8px 0;
   -webkit-overflow-scrolling: touch;
   scrollbar-gutter: stable both-edges;
-  scroll-snap-type: x mandatory;
+  padding: 0 16px;
 }
-.draft-scroller::-webkit-scrollbar { height: 8px; }
-.draft-scroller::-webkit-scrollbar-track { background: transparent; }
-.draft-scroller::-webkit-scrollbar-thumb { background: rgba(150,150,150,.55); border-radius: 4px; }
-.draft-scroller::-webkit-scrollbar-thumb:hover { background: rgba(120,120,120,.75); }
-@supports (scrollbar-width: thin){
-  .draft-scroller { scrollbar-width: thin; scrollbar-color: rgba(150,150,150,.55) transparent; }
+
+.draft-board {
+  padding: 0 8px;
+  margin: 0 auto;
+}
+
+/* Draft title styling */
+.draft-title {
+  color: rgba(255,255,255,.95) !important;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+  padding: 0;
+  letter-spacing: 0.02em;
+}
+
+.draft-meta {
+  color: rgba(255,255,255,.7);
+  font-size: 0.9rem;
+  margin-bottom: 16px;
+}
+.draft-scroller::-webkit-scrollbar { 
+  height: 8px; 
+}
+
+.draft-scroller::-webkit-scrollbar-track { 
+  background: transparent; 
+}
+
+.draft-scroller::-webkit-scrollbar-thumb { 
+  background: rgba(255,255,255,.2);
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.draft-scroller::-webkit-scrollbar-thumb:hover { 
+  background: rgba(255,255,255,.3);
+}
+
+@supports (scrollbar-width: thin) {
+  .draft-scroller { 
+    scrollbar-width: thin; 
+    scrollbar-color: rgba(255,255,255,.2) transparent; 
+  }
 }
 
 /* --- The grid board --- */
@@ -29,41 +96,99 @@
   width: max-content;       /* key: don’t shrink to container */
 }
 
-.tile{
-  border: 1px solid #e5e7eb;           /* pastel border colors override this below */
+.tile {
+  border: 1px solid rgba(255,255,255,.15);
   border-radius: 12px;
-  padding: 8px 10px;
-  background: #fff;                     /* will be overridden by pos-* backgrounds */
+  padding: 10px 12px;
   background-clip: padding-box;
-  box-shadow: 0 1px 0 rgba(0,0,0,.03);
+  box-shadow: 0 3px 8px rgba(0,0,0,.1);
   scroll-snap-align: start;
+  backdrop-filter: blur(4px);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
+
+.tile:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,.15);
+}
+
 .tile .line1,
 .tile .line2,
-.tile .line3 { line-height: 1.15; }
-
-.tile .line1{
-  display:flex; align-items:center; justify-content:space-between; gap:8px;
-  font-weight:700; font-size: .8rem;
-}
-.tile .line2{ font-size:.92rem; opacity:.85; margin-top:2px; }
-.tile .line3{
-  display:flex; align-items:center; gap:8px; margin-top:8px;
-  font-size:.7rem; opacity:.9;
-}
-.tile .avatar{
-  width:20px; height:20px; border-radius:50%; object-fit:cover;
-  border:1px solid rgba(0,0,0,.08);
+.tile .line3,
+.tile .pick-label { 
+  line-height: 1.2;
+  color: white !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,.2);
 }
 
-/* --- Position palettes (pastels) --- */
-.pos-QB { background:#f4d3e9; border-color:#eab6d9; }
-.pos-RB { background:#d7f5e4; border-color:#bfead4; }
-.pos-WR { background:#d9e8ff; border-color:#c3d9ff; }
-.pos-TE { background:#f8e3c7; border-color:#f0d0a8; }
-.pos-K  { background:#e8b1f1; border-color:#e38fef; }
-.pos-DST{ background:#efbb84; border-color:#e3e3e3; }
-.pos-UNK{ background:#eef1f5; border-color:#e3e6ea; }
+.tile .line1 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  font-family: 'Rajdhani', sans-serif;
+  letter-spacing: 0.02em;
+}
+
+.tile .line2 { 
+  font-size: 0.95rem;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+.tile .line3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 0.75rem;
+  opacity: 0.9;
+}
+.tile .avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(255,255,255,.15);
+}
+
+/* Ensure all text in tiles is white */
+.tile * {
+  color: rgba(255,255,255,.95);
+}
+
+/* --- Position palettes (darker, richer colors) --- */
+.pos-QB { 
+  background: linear-gradient(135deg, rgba(177, 44, 126, 0.9), rgba(116, 19, 78, 0.9));
+  border-color: rgba(244,211,233,.3);
+}
+.pos-RB { 
+  background: linear-gradient(135deg, rgba(46, 167, 98, 0.9), rgba(26, 107, 60, 0.9));
+  border-color: rgba(215,245,228,.3);
+}
+.pos-WR { 
+  background: linear-gradient(135deg, rgba(66, 133, 244, 0.9), rgba(25, 81, 175, 0.9));
+  border-color: rgba(217,232,255,.3);
+}
+.pos-TE { 
+  background: linear-gradient(135deg, rgba(230, 150, 44, 0.9), rgba(169, 98, 17, 0.9));
+  border-color: rgba(248,227,199,.3);
+}
+.pos-K { 
+  background: linear-gradient(135deg, rgba(171, 71, 188, 0.9), rgba(116, 42, 128, 0.9));
+  border-color: rgba(232,177,241,.3);
+}
+.pos-DST { 
+  background: linear-gradient(135deg, rgba(211, 130, 44, 0.9), rgba(145, 82, 17, 0.9));
+  border-color: rgba(239,187,132,.3);
+}
+.pos-UNK { 
+  background: linear-gradient(135deg, rgba(99, 99, 99, 0.9), rgba(66, 66, 66, 0.9));
+  border-color: rgba(238,241,245,.3);
+}
 
 /* --- Container min-width guards (prevent squish) --- */
 #container > * { min-width: 0; }

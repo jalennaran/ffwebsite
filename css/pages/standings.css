@@ -1,0 +1,215 @@
+/* Base standings styles */
+#standings {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.standings-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: linear-gradient(125deg, 
+    rgba(44, 20, 72, 0.95),
+    rgba(15, 10, 29, 0.95)
+  );
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 16px;
+  overflow: hidden;
+  backdrop-filter: blur(6px);
+  margin-bottom: 24px;
+  box-shadow: 0 3px 10px rgba(0,0,0,.15);
+}
+
+.standings-table th, 
+.standings-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255,255,255,.1);
+  color: rgba(255,255,255,.95);
+  text-align: left;
+}
+
+.standings-table th {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: rgba(255,255,255,.85);
+  background: rgba(255,255,255,.04);
+}
+
+.standings-table tr:hover { 
+  background: rgba(255,255,255,.04);
+}
+
+.standings-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Power Rankings section */
+.pr-controls {
+  margin-bottom: 16px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.pr-controls label {
+  color: rgba(255,255,255,.85);
+  font-family: 'Rajdhani', sans-serif;
+}
+
+.pr-controls select {
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.2);
+  color: rgba(255,255,255,.95);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-family: inherit;
+  backdrop-filter: blur(4px);
+}
+
+.pr-btn {
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.2);
+  color: rgba(255,255,255,.95);
+  padding: 6px 16px;
+  border-radius: 8px;
+  font-family: inherit;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  transition: all 0.2s ease;
+}
+
+.pr-btn:hover {
+  background: rgba(255,255,255,.15);
+}
+
+.power-rankings {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.power-card {
+  background: linear-gradient(125deg, 
+    rgba(44, 20, 72, 0.95),
+    rgba(15, 10, 29, 0.95)
+  );
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 16px;
+  padding: 16px 20px;
+  color: rgba(255,255,255,.95);
+  backdrop-filter: blur(6px);
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  gap: 20px;
+  align-items: center;
+  transition: transform 0.2s ease;
+}
+
+.power-card:hover {
+  transform: translateX(4px);
+}
+
+.power-card .rank {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 1.4rem;
+  color: rgba(255,255,255,.85);
+  min-width: 48px;
+}
+
+.power-card .team-name {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: rgba(255,255,255,.95);
+}
+
+.power-card .tag {
+  background: rgba(255,255,255,.08);
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: rgba(255,255,255,.9);
+  border: 1px solid rgba(255,255,255,.15);
+  margin-right: 8px;
+}
+
+.power-card .points {
+  text-align: right;
+  font-family: 'Rajdhani', sans-serif;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 240px;
+}
+
+/* Style for power rating */
+.power-card .points span:first-child {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.95);
+  margin-bottom: 2px;
+}
+
+/* Style for stats (AVG/HI/LO) */
+.power-card .points span:last-child {
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.8);
+  letter-spacing: 0.02em;
+}
+
+.pr-note {
+  color: rgba(255,255,255,.7);
+  font-size: 0.9rem;
+  margin: 16px 0;
+  font-style: italic;
+}
+
+.chart-wrap {
+  background: linear-gradient(125deg, 
+    rgba(44, 20, 72, 0.95),
+    rgba(15, 10, 29, 0.95)
+  );
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 16px;
+  padding: 20px;
+  margin-top: 16px;
+  backdrop-filter: blur(6px);
+  max-width: calc(100vw - 60px);
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  height: 450px;
+  position: relative;
+}
+
+.chart-wrap canvas {
+  max-width: 100% !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Section headers */
+#standings h2,
+#standings h3 {
+  color: rgba(255,255,255,.95);
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  margin: 32px 0 16px;
+}
+
+/* Power stats display */
+.power-stats {
+  font-size: 0.9rem;
+  color: rgba(255,255,255,.7);
+}
+
+.power-score {
+  font-size: 1.2rem;
+  color: rgba(255,255,255,.95);
+  font-weight: 600;
+  font-family: 'Rajdhani', sans-serif;
+}

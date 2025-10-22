@@ -179,62 +179,68 @@ async function getTeamHistory(uid, seasons, playersMap) {
 
 /* ----------------------- Renderer ---------------------------- */
 function renderTeamHistoryInto(body, data, playersMap) {
-  const inner = el('div', { class: 'ros-inner' });
+  const inner = el('div', { class: 'history-inner' });
   body.innerHTML = '';
   body.append(inner);
 
   // Top 5 scoring weeks
-  inner.append(el('div', { class: 'group-title', html: 'Top 5 Scoring Weeks' }));
+  const weeksSection = el('div', { class: 'history-section' });
+  weeksSection.append(el('div', { class: 'history-section-title', html: 'Top 5 Scoring Weeks' }));
   if (data.topWeeks?.length) {
-    const list = el('div', { class: 'group' });
+    const list = el('div', { class: 'top-weeks' });
     data.topWeeks.forEach(w => {
-      list.append(el('div', { class: 'pmeta', html: `${w.tag}: <strong>${w.pts.toFixed(2)}</strong>` }));
+      list.append(el('div', { class: 'week-stat', html: `${w.tag}: <strong>${w.pts.toFixed(2)}</strong>` }));
     });
-    inner.append(list);
+    weeksSection.append(list);
   } else {
-    inner.append(el('div', { class: 'pmeta', html: '—' }));
+    weeksSection.append(el('div', { class: 'history-stat', html: '—' }));
   }
+  inner.append(weeksSection);
 
   // MVP
-  inner.append(el('div', { class: 'group-title', html: 'Team MVP (all-time)' }));
+  const mvpSection = el('div', { class: 'history-section' });
+  mvpSection.append(el('div', { class: 'history-section-title', html: 'Team MVP (all-time)' }));
   if (data.mvp) {
     const m = data.mvp;
     const meta = [m.pos, m.team].filter(Boolean).join(' • ');
-    inner.append(el('div', { class: 'pmeta', html: `${m.name}${meta ? ' — ' + meta : ''} · <strong>${m.pts.toFixed(2)} pts</strong>` }));
+    mvpSection.append(el('div', { class: 'mvp-info', html: `${m.name}${meta ? ' — ' + meta : ''} · <strong>${m.pts.toFixed(2)} pts</strong>` }));
   } else {
-    inner.append(el('div', { class: 'pmeta', html: '—' }));
+    mvpSection.append(el('div', { class: 'history-stat', html: '—' }));
   }
+  inner.append(mvpSection);
 
   // Trades
-  inner.append(el('div', { class: 'group-title', html: 'All Trades' }));
+  const tradesSection = el('div', { class: 'history-section' });
+  tradesSection.append(el('div', { class: 'history-section-title', html: 'All Trades' }));
   if (data.trades?.length) {
-    const wrap = el('div', { class: 'group' });
+    const wrap = el('div', { class: 'trade-list' });
     data.trades
       .sort((a,b) => (b.season - a.season) || (b.week - a.week))
       .forEach(tr => {
-        const pills = el('div', { class: 'pills' });
+        const pills = el('div', { class: 'trade-pills' });
         tr.gained.forEach(pid => {
           const p = playersMap[pid] || {};
           const meta = [p.pos, p.team].filter(Boolean).join(' • ');
-          pills.append(el('span', { class: 'pill gain', html: (p.fn || pid) + (meta ? `<small>${meta}</small>` : '') }));
+          pills.append(el('span', { class: 'pill gain', html: `<span class="player-name">${p.fn || pid}</span>${meta ? `<small>${meta}</small>` : ''}` }));
         });
         tr.sent.forEach(pid => {
           const p = playersMap[pid] || {};
           const meta = [p.pos, p.team].filter(Boolean).join(' • ');
-          pills.append(el('span', { class: 'pill loss', html: (p.fn || pid) + (meta ? `<small>${meta}</small>` : '') }));
+          pills.append(el('span', { class: 'pill loss', html: `<span class="player-name">${p.fn || pid}</span>${meta ? `<small>${meta}</small>` : ''}` }));
         });
         (tr.picks || []).forEach(pk => {
           const yr = pk.season || '—';
           const rd = pk.round ? `R${pk.round}` : 'R?';
           pills.append(el('span', { class: 'pill pick', html: `${yr} ${rd}` }));
         });
-        const row = el('div', { class: 'tx-meta', html: `<strong>${tr.season}</strong> · Week ${tr.week}` });
+        const row = el('div', { class: 'trade-date', html: `<strong>${tr.season}</strong> · Week ${tr.week}` });
         wrap.append(row, pills);
       });
-    inner.append(wrap);
+    tradesSection.append(wrap);
   } else {
-    inner.append(el('div', { class: 'pmeta', html: 'No trades recorded.' }));
+    tradesSection.append(el('div', { class: 'history-stat', html: 'No trades recorded.' }));
   }
+  inner.append(tradesSection);
 }
 
 /* ----------------------- Page entry -------------------------- */
@@ -316,15 +322,15 @@ export default async function loadHistory() {
       const fr = franchiseByUser.get(uid);
       const display = fr?.display || 'Unknown Team';
 
-      const card = el('div', { class: 'news-card ros-card' });
-      const header = el('div', { class: 'ros-header', role: 'button', tabindex: '0' });
+      const card = el('div', { class: 'history-card' });
+      const header = el('div', { class: 'history-header', role: 'button', tabindex: '0' });
       header.append(
-        el('div', { class: 'ros-title', html: sanitizeName(display) }),
-        el('div', { class: 'pmeta', html: fr?.championships ? `🏆 ${fr.championships}× Champion` : '—' })
+        el('div', { class: 'history-title', html: sanitizeName(display) }),
+        el('div', { class: 'champion-badge', html: fr?.championships ? `🏆 ${fr.championships}× Champion` : '—' })
       );
 
-      const body = el('div', { class: 'ros-body' });
-      const inner = el('div', { class: 'ros-inner', html: 'Open to load…' });
+      const body = el('div', { class: 'history-content' });
+      const inner = el('div', { class: 'history-inner', html: 'Open to load…' });
       body.append(inner);
 
       const toggle = async () => {

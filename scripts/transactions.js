@@ -28,8 +28,18 @@ export default async function loadTransactions() {
       getPlayersMap()
     ]);
 
-    const txs = await jget(`/league/${LEAGUE_ID}/transactions/${week}`);
-    if (!txs.length) { root.textContent = `No transactions for Week ${week}.`; return; }
+    // Fetch transactions from current and previous week to get more history
+    const [currentTxs, prevTxs] = await Promise.all([
+      jget(`/league/${LEAGUE_ID}/transactions/${week}`),
+      jget(`/league/${LEAGUE_ID}/transactions/${week - 1}`)
+    ]);
+    
+    // Combine and sort transactions by date, keeping the 15 most recent
+    const txs = [...currentTxs, ...prevTxs]
+      .sort((a, b) => (b.created || b.status_updated || 0) - (a.created || a.status_updated || 0))
+      .slice(0, 15);
+      
+    if (!txs.length) { root.textContent = 'No recent transactions.'; return; }
 
     root.innerHTML = '';
     txs.forEach(tx => {
@@ -157,7 +167,7 @@ export default async function loadTransactions() {
           const row = el('div', { class: 'tx-badges' });
           row.append(el('span', { class: 'tx-badge', html: 'Added' }));
           const pills = el('div', { class: 'pills' });
-          adds.forEach(p => pills.append(el('span', { class: 'pill gain', html: p.name + (p.meta ? `<small>${p.meta}</small>` : '') })));
+          adds.forEach(p => pills.append(el('span', { class: 'pill gain', html: `<span class="player-name">${p.name}</span>${p.meta ? `<small>${p.meta}</small>` : ''}` })));
           row.append(pills);
           rows.push(row);
         }
@@ -165,7 +175,7 @@ export default async function loadTransactions() {
           const row = el('div', { class: 'tx-badges' });
           row.append(el('span', { class: 'tx-badge', html: 'Dropped' }));
           const pills = el('div', { class: 'pills' });
-          drops.forEach(p => pills.append(el('span', { class: 'pill loss', html: p.name + (p.meta ? `<small>${p.meta}</small>` : '') })));
+          drops.forEach(p => pills.append(el('span', { class: 'pill loss', html: `<span class="player-name">${p.name}</span>${p.meta ? `<small>${p.meta}</small>` : ''}` })));
           row.append(pills);
           rows.push(row);
         }

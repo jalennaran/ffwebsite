@@ -7,21 +7,21 @@
   --font-display: "Rajdhani", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   --font-ui: "Outfit", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
 
-  /* LIGHT THEME */
-  --bg: #f9f9f9;
-  --text: #111;
-  --card: #ffffff;
-  --muted: #666;
-  --border: #ddd;
+  /* DARK THEME */
+  --bg: #000000;
+  --text: #ffffff;
+  --card: #1b1b1b;
+  --muted: #c7c7c7;
+  --border: #2e2e2e;
 
-  --sb-bg: rgba(240,240,240,.9);
-  --sb-text: #111;
-  --sb-hover: rgba(0,0,0,.05);
-  --sb-border: rgba(0,0,0,.1);
-  --sb-active: rgba(0,0,0,.08);
+  --sb-bg: #111;
+  --sb-text: #fff;
+  --sb-hover: rgba(255,255,255,0.08);
+  --sb-border: rgba(255,255,255,0.12);
+  --sb-active: rgba(255,255,255,0.15);
 
-  --header-bg: #ffffff;
-  --header-fg: #111;
+  --header-bg: #111;
+  --header-fg: #fff;
 
   --brand-left:  #425e91;
   --brand-right: #6a4aa6;

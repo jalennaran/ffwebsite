@@ -45,8 +45,9 @@ export default async function loadDrafts() {
       const card = el('div', { class: 'news-card draft-card' });
 
       const start = d.start_time ? new Date(d.start_time).toLocaleString() : 'unknown';
-      const title = el('strong', {
-        html: `${d.metadata?.name || 'Draft'} — ${d.season || ''} (${d.settings?.rounds || '?'} rounds)`
+      const title = el('h3', {
+        html: `${d.metadata?.name || 'Draft'} — ${d.season || ''} (${d.settings?.rounds || '?'} rounds)`,
+        class: 'draft-title'
       });
       const meta = el('div', { class: 'draft-meta', html: `Type: ${d.type} · Status: ${d.status} · Start: ${start}` });
 

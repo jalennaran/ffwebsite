@@ -116,8 +116,20 @@ export default async function loadPowerTrends() {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { position: 'bottom' },
-        title: { display: true, text: 'Weekly Power Ranking (cumulative through each week)' },
+        legend: { 
+          position: 'bottom',
+          labels: {
+            boxWidth: 10,
+            padding: 6,
+            font: { size: 9 },
+            usePointStyle: true
+          }
+        },
+        title: { 
+          display: true, 
+          text: 'Weekly Power Ranking (cumulative through each week)',
+          font: { size: 13 }
+        },
         tooltip: {
           callbacks: {
             label: (ctx) => `${ctx.dataset.label}: #${ctx.formattedValue}`
@@ -127,12 +139,15 @@ export default async function loadPowerTrends() {
       scales: {
         y: {
           reverse: true,            // rank 1 at the top
-          ticks: { precision: 0, stepSize: 1 },
-          title: { display: true, text: 'Rank (1 = best)' },
+          ticks: { precision: 0, stepSize: 1, font: { size: 10 } },
+          title: { display: true, text: 'Rank (1 = best)', font: { size: 11 } },
           suggestedMin: 1,
           suggestedMax: rosterIds.length
         },
-        x: { title: { display: true, text: 'Week' } }
+        x: { 
+          title: { display: true, text: 'Week', font: { size: 11 } },
+          ticks: { font: { size: 10 } }
+        }
       }
     }
   });

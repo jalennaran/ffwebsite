@@ -125,9 +125,21 @@ function playerRow(pid, pts, players) {
     ? (p.fn || p.name || p.fullname || p.displayName || p.team || String(pid))
     : 'Empty';
   const meta = hasPlayer ? [p.team].filter(Boolean).join(' · ') : '';
+
+  const nameDiv = el('div', { class: hasPlayer ? 'player-name' : 'empty-name', html: name });
+  
+  // Add modal functionality if it's a real player
+  if (hasPlayer) {
+    nameDiv.addEventListener('click', async (ev) => {
+      ev.stopPropagation();
+      const { openPlayerPanel } = await import('./player-panel.js');
+      openPlayerPanel(pid);
+    });
+  }
+  
   row.append(
     el('div', {},
-      el('div', { html: name, class: hasPlayer ? '' : 'empty-name' }),
+      nameDiv,
       el('div', { class: 'pmeta', html: meta })
     )
   );

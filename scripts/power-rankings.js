@@ -97,8 +97,8 @@ export default async function loadPowerRankings() {
         <span class="team-name">${escapeHtml(t.name)}</span>
         <span class="tag">${t.wins}-${t.losses}${t.ties ? '-' + t.ties : ''} (${(t.winPct*100).toFixed(0)}% W%)</span>
         <span class="points">
-          PWR: ${t.power.toFixed(1)}<br>
-          AVG: ${t.avg.toFixed(2)} | HI: ${t.high.toFixed(2)} | LO: ${t.low.toFixed(2)}
+          <span>PWR: ${t.power.toFixed(1)}</span>
+          <span>AVG: ${t.avg.toFixed(2)} | HI: ${t.high.toFixed(2)} | LO: ${t.low.toFixed(2)}</span>
         </span>
       </div>
     `).join('');
