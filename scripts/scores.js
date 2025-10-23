@@ -403,7 +403,7 @@ async function fetchScoreboard(params = {}) {
   return res.json();
 }
 
-export default async function loadScores({ params = {} } = {}) {
+export default async function loadScores({ params = {}, pollMs = 20000 } = {}) {
   const root = document.getElementById('nfl-scoreboard-root');
   if (!root) return;
 

@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 4) Route loaders
   const loaders = {
-    home: async () => renderHome(),
+    home: () => import('./homepage.js').then(m => m.default()),
     scoreboard: () => import('./scores.js?v=mirror1').then(m => m.default({ pollMs: 20000 })),
     rosters: () => import('./rosters.js').then(m => m.default()),
     standings: () => import('./standings.js').then(m => m.default()),
@@ -57,21 +57,6 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // 5) Small view helpers
-  function renderHome() {
-    const main = document.getElementById('main-content');
-    if (!main) return;
-    if (!document.getElementById('home')) {
-      const html = `
-        <section class="container" id="home">
-          <h1 class="display">Welcome to the home of The Lads' fantasy football league</h1>
-          <p>This page allows you to view both current and past information about our league.</p>
-          <p>Click the menu button (☰) to access different information from the Sleeper/ESPN APIs.</p>
-          <p><em>*this page is a work in progress*</em></p>
-        </section>`;
-      main.insertAdjacentHTML('beforeend', html);
-    }
-  }
-
   function renderAbout() {
     const main = document.getElementById('main-content');
     if (!main) return;
