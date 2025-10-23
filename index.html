@@ -27,6 +27,7 @@
   <link rel="stylesheet" href="css/pages/standings.css">
   <link rel="stylesheet" href="css/pages/transactions.css">
   <link rel="stylesheet" href="css/pages/history.css">
+  <link rel="stylesheet" href="css/pages/playoffs.css">
 
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
@@ -43,9 +44,10 @@
         <a href="#" data-route="scoreboard">NFL Scoreboard</a>
         <a href="#" data-route="rosters">Rosters</a>
         <a href="#" data-route="drafts">Previous Drafts</a>
-        <a href="#" data-route="matchups">This Week’s Matchups</a>
+        <a href="#" data-route="matchups">This Week's Matchups</a>
         <a href="#" data-route="standings">League Standings</a>
         <a href="#" data-route="transactions">Transactions</a>
+        <a href="#" data-route="playoffs">Playoff History</a>
         <a href="#" data-route="history">League History</a>
         <a href="#" data-route="about">About</a>
     </nav>
@@ -109,6 +111,11 @@
                 <section id="transactions" class="hidden">
                     <h2>Recent Transactions</h2>
                     <div id="tx-root"></div>
+                </section>
+
+                <section id="playoffs" class="hidden">
+                    <h2>Playoff History</h2>
+                    <div id="playoffs-root"></div>
                 </section>
 
                 <section id="history" class="hidden">

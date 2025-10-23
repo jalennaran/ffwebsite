@@ -1,0 +1,511 @@
+/* Playoffs Page Styling */
+
+/* Playoff Cards - Reuse history card style */
+.playoff-card {
+  background: linear-gradient(125deg, 
+    rgba(44, 20, 72, 0.95),
+    rgba(15, 10, 29, 0.95)
+  );
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 16px;
+  backdrop-filter: blur(6px);
+  overflow: hidden;
+  margin-bottom: 16px;
+  transition: transform 0.2s ease;
+}
+
+.playoff-card:hover {
+  transform: translateY(-2px);
+}
+
+/* Playoff Header */
+.playoff-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255,255,255,.1);
+  background: rgba(255,255,255,.02);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.playoff-header:hover {
+  background: rgba(255,255,255,.04);
+}
+
+.playoff-year {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 1.4rem;
+  color: rgba(255,255,255,.95);
+  letter-spacing: 0.02em;
+}
+
+.playoff-champion {
+  color: rgba(255,255,255,.9);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 165, 0, 0.15));
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+/* Playoff Content */
+.playoff-content {
+  padding: 20px;
+  display: none;
+}
+
+.playoff-content.open {
+  display: block;
+}
+
+/* Playoff Stats Section */
+.playoff-section {
+  margin-bottom: 28px;
+}
+
+.playoff-section-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  font-size: 1.2rem;
+  color: rgba(255,255,255,.95);
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255,255,255,.15);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.playoff-stat {
+  color: rgba(255,255,255,.85);
+  margin-bottom: 10px;
+  font-size: 1rem;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  border-left: 3px solid rgba(66, 133, 244, 0.5);
+}
+
+.playoff-stat strong {
+  color: rgba(255,255,255,.95);
+  font-weight: 600;
+}
+
+/* Champion Display */
+.champion-display {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 165, 0, 0.05));
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.champion-name {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: rgba(255, 215, 0, 1);
+  margin-bottom: 8px;
+  text-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+}
+
+.champion-record {
+  font-size: 1.1rem;
+  color: rgba(255,255,255,.9);
+  font-weight: 600;
+}
+
+/* Bracket Display */
+.bracket-container {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  padding: 30px 20px;
+  overflow-x: auto;
+  margin-top: 12px;
+}
+
+.bracket-wrapper {
+  display: flex;
+  gap: 60px;
+  min-width: min-content;
+  justify-content: center;
+  align-items: center;
+  padding: 20px 10px;
+}
+
+.bracket-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 280px;
+}
+
+.bracket-round-header {
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.bracket-round-name {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 1.3rem;
+  color: rgba(255,255,255,.95);
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.bracket-round-week {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.9rem;
+  color: rgba(255,255,255,.6);
+}
+
+.bracket-matchups {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  flex: 1;
+  justify-content: space-around;
+}
+
+.bracket-matchup-card {
+  background: linear-gradient(135deg, rgba(44, 58, 89, 0.6), rgba(35, 45, 70, 0.6));
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+.bye-card {
+  opacity: 0.7;
+}
+
+.championship-matchup {
+  border: 2px solid rgba(255, 215, 0, 0.4);
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+}
+
+.championship-label {
+  background: linear-gradient(90deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.2));
+  border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+  padding: 8px 12px;
+  text-align: center;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  color: rgba(255, 215, 0, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.trophy-icon {
+  font-size: 1.2rem;
+}
+
+.bracket-team-slot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.bracket-team-slot:first-child {
+  border-top: none;
+}
+
+.bracket-team-slot.winner {
+  background: linear-gradient(90deg, rgba(46, 167, 98, 0.25), rgba(46, 167, 98, 0.15));
+  border-left: 3px solid rgba(46, 167, 98, 0.8);
+}
+
+.bracket-team-slot.bye {
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 20px 12px;
+}
+
+.bracket-bye-text {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.4);
+  letter-spacing: 0.1em;
+}
+
+.bracket-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  flex-shrink: 0;
+}
+
+.bracket-seed-badge {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(100, 120, 150, 0.5);
+  padding: 2px 8px;
+  border-radius: 6px;
+  min-width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.bracket-team-slot.winner .bracket-seed-badge {
+  background: rgba(46, 167, 98, 0.6);
+  color: rgba(255, 255, 255, 1);
+}
+
+.bracket-team-name {
+  color: rgba(255,255,255,.85);
+  font-size: 0.95rem;
+  font-weight: 500;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bracket-team-slot.winner .bracket-team-name {
+  color: rgba(255,255,255,.95);
+  font-weight: 600;
+}
+
+.bracket-score {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.bracket-score-main {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.bracket-team-slot.winner .bracket-score-main {
+  color: rgba(46, 167, 98, 1);
+}
+
+/* Responsive bracket */
+@media (max-width: 1200px) {
+  .bracket-wrapper {
+    gap: 40px;
+  }
+  
+  .bracket-column {
+    min-width: 240px;
+  }
+}
+
+@media (max-width: 900px) {
+  .bracket-wrapper {
+    gap: 30px;
+  }
+  
+  .bracket-column {
+    min-width: 220px;
+  }
+  
+  .bracket-team-name {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .bracket-wrapper {
+    flex-direction: column;
+    gap: 40px;
+  }
+  
+  .bracket-column {
+    width: 100%;
+    max-width: 400px;
+  }
+  
+  .bracket-matchups {
+    gap: 20px;
+  }
+}
+
+/* Risers List */
+.risers-list {
+  display: grid;
+  gap: 10px;
+}
+
+.riser-item {
+  background: rgba(66, 133, 244, 0.1);
+  border: 1px solid rgba(66, 133, 244, 0.3);
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.riser-name {
+  font-weight: 600;
+  color: rgba(255,255,255,.95);
+}
+
+.riser-stats {
+  color: rgba(255,255,255,.8);
+  font-size: 0.9rem;
+}
+
+/* MVP Display */
+.mvp-display {
+  background: linear-gradient(135deg, rgba(177, 44, 126, 0.15), rgba(66, 133, 244, 0.15));
+  border: 1px solid rgba(177, 44, 126, 0.3);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.mvp-icon {
+  font-size: 2.5rem;
+}
+
+.mvp-info-playoffs {
+  flex: 1;
+}
+
+.mvp-player-name {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: rgba(255,255,255,.95);
+  margin-bottom: 4px;
+}
+
+.mvp-player-meta {
+  color: rgba(255,255,255,.75);
+  font-size: 0.9rem;
+  margin-bottom: 6px;
+}
+
+.mvp-player-points {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: rgba(177, 44, 126, 1);
+}
+
+/* Stats Grid Layout */
+.playoff-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+@media (min-width: 900px) {
+  .playoff-stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.playoff-stats-column {
+  min-width: 0;
+}
+
+.playoff-chart-column {
+  min-width: 0;
+}
+
+/* Chart Wrapper for Scatter Plot */
+.chart-wrapper-inline {
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.chart-wrapper-inline canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Chart Wrapper for Donut - Smaller */
+.chart-wrapper-donut {
+  padding: 0.75rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+.chart-wrapper-donut canvas {
+  max-width: 100%;
+  max-height: 200px;
+  height: auto;
+}
+
+/* Top Players Legend for Donut Chart */
+.top-players-legend {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.top-player-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+  border-left: 3px solid rgba(66, 133, 244, 0.6);
+}
+
+.position-badge {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.95);
+  background: rgba(66, 133, 244, 0.3);
+  padding: 2px 6px;
+  border-radius: 4px;
+  min-width: 30px;
+  text-align: center;
+}
+
+.player-name-small {
+  flex: 1;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.player-points-small {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
