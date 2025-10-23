@@ -47,6 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const loaders = {
     home: () => import('./homepage.js').then(m => m.default()),
     scoreboard: () => import('./scores.js?v=mirror1').then(m => m.default({ pollMs: 20000 })),
+    'player-stats': () => import('./player-stats.js').then(m => m.default()),
     rosters: () => import('./rosters.js').then(m => m.default()),
     standings: () => import('./standings.js').then(m => m.default()),
     matchups: () => import('./matchups.js').then(m => m.default()),

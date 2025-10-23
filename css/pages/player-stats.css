@@ -1,0 +1,170 @@
+/* Player Statistics Page */
+.player-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+  padding: 1rem 0;
+}
+
+.stats-section-header {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 3rem 0 1rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Stats Card Styling */
+.stats-card {
+  background: linear-gradient(125deg, 
+    rgba(44, 20, 72, 0.95),
+    rgba(15, 10, 29, 0.95)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(6px);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stats-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+.stats-card-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 1rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #2e2e2e;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stats-card-title .position-icon {
+  font-size: 1.2rem;
+}
+
+/* Player List Styling */
+.stats-player-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.stats-player-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
+  cursor: pointer;
+}
+
+.stats-player-row:hover {
+  background: rgba(0, 0, 0, 0.4);
+  border-color: rgba(74, 158, 255, 0.3);
+  transform: translateX(4px);
+}
+
+.stats-player-rank {
+  font-weight: 700;
+  color: #4a9eff;
+  font-size: 1rem;
+  min-width: 2rem;
+}
+
+.stats-player-rank.top-1 {
+  color: #FFD700;
+}
+
+.stats-player-rank.top-2 {
+  color: #C0C0C0;
+}
+
+.stats-player-rank.top-3 {
+  color: #CD7F32;
+}
+
+.stats-player-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.stats-player-name {
+  font-weight: 600;
+  color: #ffffff;
+  font-size: 0.95rem;
+}
+
+.stats-player-meta {
+  font-size: 0.85rem;
+  color: #999;
+}
+
+.stats-player-points {
+  font-weight: 700;
+  color: #4a9eff;
+  font-size: 1rem;
+  text-align: right;
+}
+
+/* Loading State */
+.stats-loading {
+  text-align: center;
+  padding: 2rem;
+  color: #999;
+  font-style: italic;
+}
+
+/* Error State */
+.stats-error {
+  text-align: center;
+  padding: 2rem;
+  color: #ff6b6b;
+}
+
+/* Empty State */
+.stats-empty {
+  text-align: center;
+  padding: 2rem;
+  color: #999;
+  font-style: italic;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .player-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .stats-player-row {
+    grid-template-columns: auto 1fr auto;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1200px) {
+  .player-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1201px) {
+  .player-stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

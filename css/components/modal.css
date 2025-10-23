@@ -94,13 +94,25 @@
   font-weight: 700;
   font-size: .9rem;
   text-decoration: none;
-  transition: transform .12s ease, background .12s ease, box-shadow .12s ease;
+  transition: transform .12s ease, background .12s ease, box-shadow .12s ease, border-color .12s ease;
+  cursor: pointer;
+}
+
+.tab:hover {
+  background: rgba(255,255,255,.2);
+  border-color: rgba(255,255,255,.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,.2);
 }
 
 .tab.active{
   background: rgba(255,255,255,.22);
   border-color: rgba(255,255,255,.28);
   box-shadow: 0 2px 8px rgba(0,0,0,.15);
+}
+
+.tab.active:hover {
+  transform: translateY(0);
 }
 
 
@@ -146,6 +158,93 @@
   color: rgba(255,255,255,.97);
   text-shadow: 0 1px 2px rgba(0,0,0,.25);
   margin-bottom: 16px;
+}
+
+.pp-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.pp-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pp-rankings {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: rgba(255,255,255,.8);
+}
+
+.rank-overall {
+  font-weight: 700;
+  color: rgba(255,255,255,.95);
+  background: rgba(255,255,255,.12);
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,.15);
+  backdrop-filter: blur(4px);
+}
+
+.rank-position {
+  font-weight: 700;
+  color: rgba(255,255,255,.95);
+  background: rgba(255,255,255,.12);
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,.15);
+  backdrop-filter: blur(4px);
+}
+
+.rank-separator {
+  color: rgba(255,255,255,.4);
+  font-weight: 600;
+}
+
+.pp-header .pp-title {
+  margin-bottom: 0;
+}
+
+.pp-player-card {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.pp-player-img {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,.3);
+  box-shadow: 0 2px 8px rgba(0,0,0,.2);
+  background: rgba(0,0,0,.2);
+  display: block;
+}
+
+.pp-player-badge {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(255,255,255,.15);
+  backdrop-filter: blur(8px);
+  padding: 4px 8px;
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: rgba(255,255,255,.95);
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+  border-top: 1px solid rgba(255,255,255,.2);
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 2px rgba(0,0,0,.3);
 }
 
 .pp-chart-wrap { margin: 6px 0 14px; padding: 0 8px 4px; }

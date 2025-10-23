@@ -3,6 +3,84 @@ import { getPlayersMap, getCurrentSeason, getCurrentWeek,
          getPlayerWeeklyLeaguePoints, getPlayerWeekStats } from './api.js';
 import { el } from './ui.js';
 
+// Calculate player rankings based on total points
+async function getPlayerRankings(season, currentWeek) {
+  const playersMap = await getPlayersMap();
+  const playerTotals = new Map();
+  
+  // Aggregate stats from week 1 to current week - 1 (completed weeks only)
+  const endWeek = Math.max(1, currentWeek - 1);
+  
+  for (let week = 1; week <= endWeek; week++) {
+    try {
+      const positions = ['QB', 'RB', 'WR', 'TE', 'K'];
+      
+      for (const pos of positions) {
+        const url = `https://api.sleeper.com/stats/nfl/${season}/${week}?season_type=regular&position=${pos}`;
+        const response = await fetch(url);
+        if (!response.ok) continue;
+        const stats = await response.json();
+        
+        if (Array.isArray(stats)) {
+          stats.forEach(stat => {
+            const playerId = stat.player_id || stat.id;
+            if (!playerId) return;
+            
+            const s = stat.stats || {};
+            const points = s.fantasy_points_ppr || s.fantasy_points || s.pts_ppr || 0;
+            const player = playersMap[playerId];
+            const position = stat.position || player?.pos || 'UNKNOWN';
+            
+            if (!playerTotals.has(playerId)) {
+              playerTotals.set(playerId, {
+                playerId,
+                totalPoints: 0,
+                position: position
+              });
+            }
+            
+            const playerData = playerTotals.get(playerId);
+            playerData.totalPoints += Number(points) || 0;
+            if (!playerData.position || playerData.position === 'UNKNOWN') {
+              playerData.position = position;
+            }
+          });
+        }
+      }
+    } catch (e) {
+      console.warn(`Failed to fetch stats for week ${week}:`, e);
+    }
+  }
+  
+  const allPlayers = Array.from(playerTotals.values());
+  
+  // Sort by total points for overall ranking
+  const overallRanked = [...allPlayers].sort((a, b) => b.totalPoints - a.totalPoints);
+  
+  // Create position-specific rankings
+  const positionRankings = {};
+  const positions = ['QB', 'RB', 'WR', 'TE', 'K'];
+  
+  positions.forEach(pos => {
+    const posPlayers = allPlayers.filter(p => p.position === pos);
+    posPlayers.sort((a, b) => b.totalPoints - a.totalPoints);
+    positionRankings[pos] = posPlayers;
+  });
+  
+  // Return rankings lookup function
+  return {
+    getOverallRank: (playerId) => {
+      const idx = overallRanked.findIndex(p => p.playerId === playerId);
+      return idx >= 0 ? idx + 1 : null;
+    },
+    getPositionRank: (playerId, position) => {
+      const posRanked = positionRankings[position] || [];
+      const idx = posRanked.findIndex(p => p.playerId === playerId);
+      return idx >= 0 ? idx + 1 : null;
+    }
+  };
+}
+
 function buildWeeklyLineChartSVG(rows, opts = {}) {
   // rows: [{week, pts}]
   const w = opts.width  || 680;     // container will scale it
@@ -163,7 +241,16 @@ export async function openPlayerPanel(pid) {
   }
 
   sheet.append(
-    el('div', { class: 'pp-title', html: 'Loading…' }),
+    el('div', { class: 'pp-header' },
+      el('div', { class: 'pp-info' },
+        el('div', { class: 'pp-title', html: 'Loading…' }),
+        el('div', { class: 'pp-rankings', html: '' })
+      ),
+      el('div', { class: 'pp-player-card' },
+        el('img', { class: 'pp-player-img', src: '', alt: 'Player' }),
+        el('div', { class: 'pp-player-badge' }, '')
+      )
+    ),
     el('div', { class: 'tabs' },
       el('button', { class: 'tab active', 'data-tab':'points',   html:'Weekly Points' }),
       el('button', { class: 'tab',         'data-tab':'gamelog',  html:'Game Log' }),
@@ -192,7 +279,45 @@ export async function openPlayerPanel(pid) {
     if (p.team) {
       setTeamColors(p.team);
     }
-    sheet.querySelector('.pp-title').textContent = `${name} ${p.pos ? `(${p.pos})` : ''} ${p.team ? `· ${p.team}` : ''}`;
+    
+    // Update title
+    sheet.querySelector('.pp-title').textContent = `${name} ${p.team ? `· ${p.team}` : ''}`;
+    
+    // Get and display rankings
+    const rankings = await getPlayerRankings(season, week);
+    const overallRank = rankings.getOverallRank(pid);
+    const positionRank = p.pos ? rankings.getPositionRank(pid, p.pos) : null;
+    
+    const rankingsEl = sheet.querySelector('.pp-rankings');
+    if (rankingsEl) {
+      if (overallRank && positionRank && p.pos) {
+        rankingsEl.innerHTML = `
+          <span class="rank-overall">#${overallRank} Overall</span>
+          <span class="rank-separator">•</span>
+          <span class="rank-position">#${positionRank} ${p.pos}</span>
+        `;
+      } else if (overallRank) {
+        rankingsEl.innerHTML = `<span class="rank-overall">#${overallRank} Overall</span>`;
+      }
+    }
+    
+    // Set player image - using Sleeper's CDN for player images
+    const playerImg = sheet.querySelector('.pp-player-img');
+    if (playerImg) {
+      playerImg.src = `https://sleepercdn.com/content/nfl/players/thumb/${pid}.jpg`;
+      playerImg.alt = name;
+      // Fallback to a placeholder if image doesn't exist
+      playerImg.onerror = () => {
+        playerImg.style.display = 'none';
+      };
+    }
+    
+    // Update player badge with number and position
+    const playerBadge = sheet.querySelector('.pp-player-badge');
+    if (playerBadge && p.pos) {
+      const number = p.number || '#';
+      playerBadge.textContent = `${p.pos} · ${number}`;
+    }
 
     // tabs click
     const tabs = sheet.querySelectorAll('.tab');
@@ -202,7 +327,7 @@ export async function openPlayerPanel(pid) {
     }));
 
     // data providers
-    const endWeek = Math.max(1, Number(week) - 0); // include current week; league data is live
+    const endWeek = Math.max(1, Number(week) - 1); // exclude current week - only show completed weeks
     const weeklyPointsPromise = getPlayerWeeklyLeaguePoints(pid, endWeek);
 
     async function getGameLog() {

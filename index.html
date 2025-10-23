@@ -28,6 +28,7 @@
   <link rel="stylesheet" href="css/pages/transactions.css">
   <link rel="stylesheet" href="css/pages/history.css">
   <link rel="stylesheet" href="css/pages/playoffs.css">
+  <link rel="stylesheet" href="css/pages/player-stats.css">
 
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
@@ -42,6 +43,7 @@
     <nav class="sb-nav" aria-label="Primary">
         <a href="#" data-route="home">Homepage</a>
         <a href="#" data-route="scoreboard">NFL Scoreboard</a>
+        <a href="#" data-route="player-stats">Player Statistics</a>
         <a href="#" data-route="rosters">Rosters</a>
         <a href="#" data-route="drafts">Previous Drafts</a>
         <a href="#" data-route="matchups">This Week's Matchups</a>
@@ -70,6 +72,11 @@
                 <section id="scoreboard" class="card-grid">
                 <h2>NFL Scoreboard</h2>
                 <div id="nfl-scoreboard-root" class="cards"></div>
+                </section>
+
+                <section id="player-stats" class="hidden">
+                    <h2>Player Statistics</h2>
+                    <div id="player-stats-root"></div>
                 </section>
 
                 <section id="rosters" class="hidden">
