@@ -56,8 +56,9 @@ export default async function loadRosters() {
         const p = playersMap[pid] || {};
         const pos = p.pos === 'DEF' ? 'DST' : p.pos;
         const team = p.team || '';
+        const injuryStatus = p.injury_status || null;
         teamByPid[pid] = team;                 // <<< NEW: save team for fallback
-        return { pid, fn: p.fn || pid, pos, team };
+        return { pid, fn: p.fn || pid, pos, team, injuryStatus };
       };
 
 
@@ -139,6 +140,27 @@ export default async function loadRosters() {
       // left: position
       row.append(el('div', {}, el('span', { class:`pos ${p? posClass(p):''}`, html: p? posKey(p): '—' })));
 
+      // player image or team logo for defenses
+      if (p) {
+        let imgUrl;
+        if (p.pos === 'DEF' || p.pos === 'DST') {
+          // Use team logo for defenses
+          imgUrl = `https://sleepercdn.com/images/team_logos/nfl/${(p.team || '').toLowerCase()}.png`;
+        } else {
+          // Use player headshot for regular players
+          imgUrl = `https://sleepercdn.com/content/nfl/players/thumb/${p.pid}.jpg`;
+        }
+        const img = el('img', { 
+          class: 'player-thumbnail',
+          src: imgUrl,
+          alt: p.fn,
+          onerror: "this.style.display='none'"
+        });
+        row.append(el('div', { class: 'player-img-cell' }, img));
+      } else {
+        row.append(el('div', { class: 'player-img-cell' }));
+      }
+
       // middle: name + team
       // middle: name + team
       const nameHtml = p
@@ -148,7 +170,18 @@ export default async function loadRosters() {
         : 'No players';
 
       const nameDiv = el('div', { html: nameHtml });
+      
+      // Add injury status next to name if present
+      if (p && p.injuryStatus) {
+        const injuryBadge = el('span', { 
+          class: `injury-badge injury-${p.injuryStatus.toLowerCase()}`,
+          html: p.injuryStatus.toUpperCase()
+        });
+        nameDiv.append(document.createTextNode(' '), injuryBadge);
+      }
+      
       const metaDiv = el('div', { class:'pmeta', html: p ? (p.team || '') : '' });
+      
       row.append(el('div', {}, nameDiv, metaDiv));
 
       // hook: open modal on click

@@ -55,7 +55,7 @@
 
 .player-row {
   display: grid; 
-  grid-template-columns: 68px 1fr max-content max-content;
+  grid-template-columns: 68px 48px 1fr max-content max-content;
   gap: 12px;
   padding: 10px 12px;
   border-bottom: 1px solid rgba(255,255,255,.1);
@@ -74,6 +74,44 @@
 .pmeta { 
   color: rgba(255,255,255,.7); 
   font-size: .9rem;
+}
+
+.injury-badge {
+  display: inline-block;
+  font-size: .7rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 700;
+  margin-left: 6px;
+  backdrop-filter: blur(4px);
+}
+
+.injury-out,
+.injury-ir {
+  background: rgba(220, 38, 38, 0.2);
+  border: 1px solid rgba(220, 38, 38, 0.4);
+  color: rgba(255, 100, 100, 0.95);
+}
+
+.injury-doubtful {
+  background: rgba(234, 88, 12, 0.2);
+  border: 1px solid rgba(234, 88, 12, 0.4);
+  color: rgba(251, 146, 60, 0.95);
+}
+
+.injury-questionable,
+.injury-q {
+  background: rgba(234, 179, 8, 0.2);
+  border: 1px solid rgba(234, 179, 8, 0.4);
+  color: rgba(250, 204, 21, 0.95);
+}
+
+.injury-sus,
+.injury-pup,
+.injury-cov {
+  background: rgba(147, 51, 234, 0.2);
+  border: 1px solid rgba(147, 51, 234, 0.4);
+  color: rgba(192, 132, 252, 0.95);
 }
 
 .pos {
@@ -103,8 +141,23 @@
   scroll-padding-right: 32px;
 }
 
+.player-img-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.player-thumbnail {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid rgba(255,255,255,.2);
+  background: rgba(0,0,0,.2);
+}
+
 .player-row {
-  grid-template-columns: 68px 1fr max-content max-content;
+  grid-template-columns: 68px 48px 1fr max-content max-content;
 }
 
 .cell {

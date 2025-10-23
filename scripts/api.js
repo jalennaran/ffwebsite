@@ -20,13 +20,19 @@ const __teamDepthCache = new Map();       // key: `TD:${season}:${endWeek}:${tea
 
 // --- players map cache ---
 export async function getPlayersMap() {
-  const key = 'sleeper_players_map_v2';
+  const key = 'sleeper_players_map_v3';  // Updated version to include injury_status
   const cached = localStorage.getItem(key);
   if (cached) return JSON.parse(cached);
   const data = await jget('/players/nfl'); // ~5MB
   const slim = {};
   for (const [pid, p] of Object.entries(data)) {
-    slim[pid] = { fn: p.full_name, pos: p.position, team: p.team, number: p.number };
+    slim[pid] = { 
+      fn: p.full_name, 
+      pos: p.position, 
+      team: p.team, 
+      number: p.number,
+      injury_status: p.injury_status
+    };
   }
   localStorage.setItem(key, JSON.stringify(slim));
   return slim;

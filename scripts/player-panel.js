@@ -281,7 +281,22 @@ export async function openPlayerPanel(pid) {
     }
     
     // Update title
-    sheet.querySelector('.pp-title').textContent = `${name} ${p.team ? `· ${p.team}` : ''}`;
+    const titleEl = sheet.querySelector('.pp-title');
+    if (titleEl) {
+      titleEl.textContent = `${name}`;
+      if (p.team) {
+        titleEl.insertAdjacentText('beforeend', ` · ${p.team}`);
+      }
+      // Add injury status if present
+      if (p.injury_status) {
+        const injuryBadge = el('span', { 
+          class: `injury-badge injury-${p.injury_status.toLowerCase()}`,
+          html: p.injury_status.toUpperCase()
+        });
+        titleEl.appendChild(document.createTextNode(' '));
+        titleEl.appendChild(injuryBadge);
+      }
+    }
     
     // Get and display rankings
     const rankings = await getPlayerRankings(season, week);
