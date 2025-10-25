@@ -11,7 +11,18 @@ export default async function loadPowerRankings() {
   if (!container) return; // nothing to render into
   const metricSelect = document.getElementById('pr-metric');
 
-  container.innerHTML = '<div class="power-card"><span>Loading…</span></div>';
+  // Show skeleton loading
+  container.innerHTML = Array(10).fill().map(() => `
+    <div class="power-card skeleton-power-card">
+      <span class="skeleton skeleton-rank"></span>
+      <span class="skeleton skeleton-team-name"></span>
+      <span class="skeleton skeleton-tag"></span>
+      <span class="skeleton-points">
+        <span class="skeleton skeleton-stat-line"></span>
+        <span class="skeleton skeleton-stat-line"></span>
+      </span>
+    </div>
+  `).join('');
 
   try {
     // 1) Base data

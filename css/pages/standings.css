@@ -213,3 +213,127 @@
   font-weight: 600;
   font-family: 'Rajdhani', sans-serif;
 }
+
+/* Skeleton Loading Styles for Power Rankings */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+@keyframes skeleton-loading {
+  0%, 100% { background-position: 200% 0; }
+  50% { background-position: -200% 0; }
+}
+
+.skeleton-power-card {
+  pointer-events: none;
+}
+
+.skeleton-power-card:hover {
+  transform: none;
+}
+
+.skeleton-rank {
+  height: 1.5rem;
+  width: 3rem;
+}
+
+.skeleton-team-name {
+  height: 1.2rem;
+  width: 150px;
+}
+
+.skeleton-tag {
+  height: 1.5rem;
+  width: 120px;
+  border-radius: 999px;
+}
+
+.skeleton-points {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 240px;
+  align-items: flex-end;
+}
+
+.skeleton-stat-line {
+  height: 1rem;
+  width: 220px;
+}
+
+/* Skeleton for Standings Table */
+.skeleton-table tbody tr {
+  pointer-events: none;
+}
+
+.skeleton-table tbody tr:hover {
+  background: transparent;
+}
+
+.skeleton-rank-cell {
+  height: 1rem;
+  width: 2rem;
+}
+
+.skeleton-team-cell {
+  height: 1rem;
+  width: 150px;
+}
+
+.skeleton-stat-cell {
+  height: 1rem;
+  width: 3rem;
+}
+
+/* Skeleton for Power Trends Chart */
+.skeleton-chart-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(125deg, 
+    rgba(44, 20, 72, 0.95),
+    rgba(15, 10, 29, 0.95)
+  );
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  z-index: 10;
+}
+
+.skeleton-chart-title {
+  height: 1.5rem;
+  width: 60%;
+  margin: 0 auto 1.5rem;
+}
+
+.skeleton-chart-area {
+  flex: 1;
+  width: 100%;
+  margin-bottom: 1rem;
+  border-radius: 8px;
+}
+
+.skeleton-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.skeleton-legend-item {
+  height: 0.8rem;
+  width: 80px;
+  border-radius: 4px;
+}

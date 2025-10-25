@@ -1073,11 +1073,13 @@ function renderWeekRecapInto(body, weekNum, matchups, ownerByRoster, playersMap)
 /* ----------------------- Accolades Functions ----------------------- */
 
 async function renderAccoladesWithStandings(body, seasons, playersMap, allTimeRecords) {
-  const inner = el('div', { class: 'history-inner' });
-  body.innerHTML = '';
-  body.append(inner);
-
-  inner.textContent = 'Calculating league accolades...';
+  // Use existing inner div if it exists (preserves skeleton), otherwise create new one
+  let inner = body.querySelector('.history-inner');
+  if (!inner) {
+    inner = el('div', { class: 'history-inner' });
+    body.innerHTML = '';
+    body.append(inner);
+  }
 
   // Data structures for tracking
   const playerAddsDrops = {}; // player_id -> { adds, drops, name }
@@ -1536,7 +1538,28 @@ export default async function loadHistory() {
         if (!body.classList.contains('open')) return;
 
         if (!body.dataset.loaded) {
-          inner.textContent = 'Loading…';
+          // Show skeleton loading
+          inner.innerHTML = '';
+          const skeletonGrid = el('div', { class: 'team-stats-grid' });
+          const skeletonLeft = el('div', { class: 'team-stats-column' },
+            ...Array(4).fill().map(() => 
+              el('div', { class: 'history-section' },
+                el('div', { class: 'skeleton skeleton-section-title' }),
+                el('div', { class: 'skeleton skeleton-stat-item' }),
+                el('div', { class: 'skeleton skeleton-stat-item' }),
+                el('div', { class: 'skeleton skeleton-stat-item' })
+              )
+            )
+          );
+          const skeletonRight = el('div', { class: 'team-chart-column' },
+            el('div', { class: 'history-section' },
+              el('div', { class: 'skeleton skeleton-section-title' }),
+              el('div', { class: 'skeleton skeleton-chart-box' })
+            )
+          );
+          skeletonGrid.append(skeletonLeft, skeletonRight);
+          inner.append(skeletonGrid);
+          
           try {
             const currentWeek = await getCurrentWeek();
             const data = await getTeamHistory(uid, seasons, playersMap, currentWeek);
@@ -1580,7 +1603,26 @@ export default async function loadHistory() {
       if (!accoladesBody.classList.contains('open')) return;
 
       if (!accoladesBody.dataset.loaded) {
-        accoladesInner.textContent = 'Loading accolades…';
+        // Show skeleton loading
+        accoladesInner.innerHTML = '';
+        const skeletonAccolades = el('div', { class: 'accolades-grid' });
+        const skeletonLeft = el('div', { class: 'accolades-column' },
+          ...Array(8).fill().map(() => 
+            el('div', { class: 'history-section' },
+              el('div', { class: 'skeleton skeleton-section-title' }),
+              el('div', { class: 'skeleton skeleton-stat-item' })
+            )
+          )
+        );
+        const skeletonRight = el('div', { class: 'standings-column' },
+          el('div', { class: 'skeleton skeleton-section-title' }),
+          ...Array(10).fill().map(() => 
+            el('div', { class: 'skeleton skeleton-standing-row' })
+          )
+        );
+        skeletonAccolades.append(skeletonLeft, skeletonRight);
+        accoladesInner.append(skeletonAccolades);
+        
         try {
           // Calculate all-time records
           const allTimeRecords = [];
@@ -1672,7 +1714,19 @@ export default async function loadHistory() {
         if (!weekBody.classList.contains('open')) return;
 
         if (!weekBody.dataset.loaded) {
-          weekInner.textContent = 'Loading…';
+          // Show skeleton loading
+          weekInner.innerHTML = '';
+          weekInner.append(
+            ...Array(3).fill().map(() => 
+              el('div', { class: 'history-section' },
+                el('div', { class: 'skeleton skeleton-section-title' }),
+                el('div', { class: 'skeleton skeleton-stat-item' }),
+                el('div', { class: 'skeleton skeleton-stat-item' }),
+                el('div', { class: 'skeleton skeleton-stat-item' })
+              )
+            )
+          );
+          
           try {
             const matchups = await getWeekStats(week);
             renderWeekRecapInto(weekBody, week, matchups, ownerByRoster, playersMap);

@@ -940,11 +940,13 @@ function createByeCard(rosterId, getTeamName, getSeed, getAvatarUrl) {
 
 /* ----------------------- Playoff Content Renderer ----------------------- */
 async function renderPlayoffContent(body, season, playersMap) {
-  const inner = el('div', { class: 'history-inner' });
-  body.innerHTML = '';
-  body.append(inner);
-  
-  inner.textContent = 'Loading playoff data...';
+  // Use existing inner div if it exists (preserves skeleton), otherwise create new one
+  let inner = body.querySelector('.history-inner');
+  if (!inner) {
+    inner = el('div', { class: 'history-inner' });
+    body.innerHTML = '';
+    body.append(inner);
+  }
   
   const seasonData = await getSeasonData(season);
   if (!seasonData) {
@@ -1384,6 +1386,37 @@ export default async function loadPlayoffs() {
         if (!body.classList.contains('open')) return;
         
         if (!body.dataset.loaded) {
+          // Show skeleton loading
+          inner.innerHTML = '';
+          
+          // Champion skeleton
+          inner.append(
+            el('div', { class: 'champion-display' },
+              el('div', { class: 'skeleton skeleton-champion-name' }),
+              el('div', { class: 'skeleton skeleton-champion-record' })
+            )
+          );
+          
+          // Stats grid skeleton
+          const skeletonGrid = el('div', { class: 'playoff-stats-grid' });
+          const skeletonLeft = el('div', { class: 'playoff-stats-column' },
+            ...Array(4).fill().map(() => 
+              el('div', { class: 'playoff-section' },
+                el('div', { class: 'skeleton skeleton-section-title' }),
+                el('div', { class: 'skeleton skeleton-stat-item' }),
+                el('div', { class: 'skeleton skeleton-stat-item' })
+              )
+            )
+          );
+          const skeletonRight = el('div', { class: 'playoff-chart-column' },
+            el('div', { class: 'playoff-section' },
+              el('div', { class: 'skeleton skeleton-section-title' }),
+              el('div', { class: 'skeleton skeleton-chart-box' })
+            )
+          );
+          skeletonGrid.append(skeletonLeft, skeletonRight);
+          inner.append(skeletonGrid);
+          
           await renderPlayoffContent(body, parseInt(season), playersMap);
           body.dataset.loaded = '1';
         }

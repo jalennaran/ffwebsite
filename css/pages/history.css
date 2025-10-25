@@ -390,3 +390,46 @@
 .standings-column {
   min-width: 0;
 }
+
+/* Skeleton Loading Styles for History */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+@keyframes skeleton-loading {
+  0%, 100% { background-position: 200% 0; }
+  50% { background-position: -200% 0; }
+}
+
+.skeleton-section-title {
+  height: 1.5rem;
+  width: 60%;
+  margin-bottom: 1rem;
+}
+
+.skeleton-stat-item {
+  height: 1rem;
+  width: 80%;
+  margin-bottom: 0.75rem;
+}
+
+.skeleton-chart-box {
+  height: 250px;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.skeleton-standing-row {
+  height: 2.5rem;
+  width: 100%;
+  margin-bottom: 0.5rem;
+  border-radius: 8px;
+}

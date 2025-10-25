@@ -5,7 +5,34 @@ import loadPowerRankings from './power-rankings.js';
 
 export default async function loadStandings() {
   const root = document.getElementById('standings-root');
-  root.textContent = 'Loading standings...';
+  
+  // Show skeleton loading for standings table
+  const skeletonTable = el('table', { class: 'standings-table skeleton-table' });
+  const skeletonHead = el('thead', {},
+    el('tr', {}, 
+      el('th', {}, 'Rank'), 
+      el('th', {}, 'Team'),
+      el('th', {}, 'W'), 
+      el('th', {}, 'L'), 
+      el('th', {}, 'PF')
+    )
+  );
+  const skeletonBody = el('tbody');
+  for (let i = 0; i < 10; i++) {
+    skeletonBody.append(
+      el('tr', {},
+        el('td', {}, el('div', { class: 'skeleton skeleton-rank-cell' })),
+        el('td', {}, el('div', { class: 'skeleton skeleton-team-cell' })),
+        el('td', {}, el('div', { class: 'skeleton skeleton-stat-cell' })),
+        el('td', {}, el('div', { class: 'skeleton skeleton-stat-cell' })),
+        el('td', {}, el('div', { class: 'skeleton skeleton-stat-cell' }))
+      )
+    );
+  }
+  skeletonTable.append(skeletonHead, skeletonBody);
+  root.innerHTML = '';
+  root.append(skeletonTable);
+  
   try {
     const { rosters, ownerByRoster } = await getLeagueBundle();
     const rows = rosters.map(r => {

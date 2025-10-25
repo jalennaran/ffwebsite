@@ -6,6 +6,23 @@ export default async function loadPowerTrends() {
   const canvas = document.getElementById('power-trend-chart');
   if (!canvas) return;
 
+  // Get canvas parent container to add skeleton
+  const chartContainer = canvas.parentElement;
+  
+  // Show skeleton loading for chart
+  const skeletonOverlay = document.createElement('div');
+  skeletonOverlay.className = 'skeleton-chart-overlay';
+  skeletonOverlay.innerHTML = `
+    <div class="skeleton skeleton-chart-title"></div>
+    <div class="skeleton skeleton-chart-area"></div>
+    <div class="skeleton-chart-legend">
+      ${Array(10).fill().map(() => '<div class="skeleton skeleton-legend-item"></div>').join('')}
+    </div>
+  `;
+  chartContainer.style.position = 'relative';
+  chartContainer.insertBefore(skeletonOverlay, canvas);
+  canvas.style.opacity = '0';
+
   const state = await fetch(`https://api.sleeper.app/v1/state/nfl`).then(r => r.json());
   // EXCLUDE current week:
   const endWeek = Math.max(1, Number(state.week || 1) - 1);
@@ -108,6 +125,12 @@ export default async function loadPowerTrends() {
   if (!window.Chart) {
     await import('https://cdn.jsdelivr.net/npm/chart.js');
   }
+
+  // Remove skeleton overlay and show canvas
+  if (skeletonOverlay && skeletonOverlay.parentElement) {
+    skeletonOverlay.remove();
+  }
+  canvas.style.opacity = '1';
 
   new Chart(canvas, {
     type: 'line',

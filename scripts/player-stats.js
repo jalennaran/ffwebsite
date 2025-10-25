@@ -304,7 +304,32 @@ export default async function loadPlayerStats() {
   const root = document.getElementById('player-stats-root');
   if (!root) return;
   
-  root.innerHTML = '<div class="stats-loading">Loading player statistics...</div>';
+  // Show skeleton loading
+  const skeletonGrid = el('div', { class: 'player-stats-grid' });
+  for (let i = 0; i < 6; i++) {
+    const skeletonCard = el('div', { class: 'stats-card skeleton-stats-card' },
+      el('div', { class: 'stats-card-header' },
+        el('div', { class: 'skeleton skeleton-card-icon' }),
+        el('div', { class: 'skeleton skeleton-card-title' })
+      ),
+      el('div', { class: 'stats-card-body' },
+        ...Array(5).fill().map(() => 
+          el('div', { class: 'stats-player-row' },
+            el('div', { class: 'skeleton skeleton-player-rank' }),
+            el('div', { class: 'skeleton skeleton-player-avatar' }),
+            el('div', { class: 'skeleton-player-info' },
+              el('div', { class: 'skeleton skeleton-player-name' }),
+              el('div', { class: 'skeleton skeleton-player-team' })
+            ),
+            el('div', { class: 'skeleton skeleton-player-points' })
+          )
+        )
+      )
+    );
+    skeletonGrid.appendChild(skeletonCard);
+  }
+  root.innerHTML = '';
+  root.appendChild(skeletonGrid);
   
   try {
     const season = await getCurrentSeason();
@@ -379,9 +404,31 @@ export default async function loadPlayerStats() {
     const allTimeHeader = el('h2', { class: 'stats-section-header' }, 'All Time Player Statistics');
     root.appendChild(allTimeHeader);
     
-    // Show loading for all-time stats
-    const allTimeLoadingDiv = el('div', { class: 'stats-loading' }, 'Loading all-time statistics...');
-    root.appendChild(allTimeLoadingDiv);
+    // Show skeleton loading for all-time stats
+    const allTimeSkeletonGrid = el('div', { class: 'player-stats-grid' });
+    for (let i = 0; i < 6; i++) {
+      const skeletonCard = el('div', { class: 'stats-card skeleton-stats-card' },
+        el('div', { class: 'stats-card-header' },
+          el('div', { class: 'skeleton skeleton-card-icon' }),
+          el('div', { class: 'skeleton skeleton-card-title' })
+        ),
+        el('div', { class: 'stats-card-body' },
+          ...Array(5).fill().map(() => 
+            el('div', { class: 'stats-player-row' },
+              el('div', { class: 'skeleton skeleton-player-rank' }),
+              el('div', { class: 'skeleton skeleton-player-avatar' }),
+              el('div', { class: 'skeleton-player-info' },
+                el('div', { class: 'skeleton skeleton-player-name' }),
+                el('div', { class: 'skeleton skeleton-player-team' })
+              ),
+              el('div', { class: 'skeleton skeleton-player-points' })
+            )
+          )
+        )
+      );
+      allTimeSkeletonGrid.appendChild(skeletonCard);
+    }
+    root.appendChild(allTimeSkeletonGrid);
     
     // Fetch and render all-time stats
     const allTimeStats = await getAllTimeLeagueStats(playersMap);
@@ -423,8 +470,8 @@ export default async function loadPlayerStats() {
     allTimeGrid.appendChild(allTimeTeCard);
     allTimeGrid.appendChild(allTimeKCard);
     
-    // Remove loading and add all-time grid
-    root.removeChild(allTimeLoadingDiv);
+    // Remove skeleton and add all-time grid
+    root.removeChild(allTimeSkeletonGrid);
     root.appendChild(allTimeGrid);
     
   } catch (e) {
