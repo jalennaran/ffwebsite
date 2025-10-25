@@ -240,24 +240,39 @@ export async function openPlayerPanel(pid) {
     sheet.style.setProperty('--team-secondary', `var(--${team}-secondary)`);
   }
 
-  sheet.append(
-    el('div', { class: 'pp-header' },
-      el('div', { class: 'pp-info' },
-        el('div', { class: 'pp-title', html: 'Loading…' }),
-        el('div', { class: 'pp-rankings', html: '' })
-      ),
-      el('div', { class: 'pp-player-card' },
-        el('img', { class: 'pp-player-img', src: '', alt: 'Player' }),
-        el('div', { class: 'pp-player-badge' }, '')
+  // Create skeleton loading screen
+  const skeletonHeader = el('div', { class: 'skeleton-header' },
+    el('div', { class: 'skeleton-info' },
+      el('div', { class: 'skeleton skeleton-title' }),
+      el('div', { class: 'skeleton-rankings' },
+        el('div', { class: 'skeleton skeleton-rank' }),
+        el('div', { class: 'skeleton skeleton-rank' })
       )
     ),
-    el('div', { class: 'tabs' },
-      el('button', { class: 'tab active', 'data-tab':'points',   html:'Weekly Points' }),
-      el('button', { class: 'tab',         'data-tab':'gamelog',  html:'Game Log' }),
-      el('button', { class: 'tab',         'data-tab':'teamdepth',html:'Team Depth' })   // <-- new
-    ),
-    el('div', { id: 'pp-body' }, el('div', { html: 'Loading…' }))
-);
+    el('div', { class: 'skeleton skeleton-player-card' })
+  );
+
+  const skeletonTabs = el('div', { class: 'skeleton-tabs' },
+    el('div', { class: 'skeleton skeleton-tab' }),
+    el('div', { class: 'skeleton skeleton-tab' }),
+    el('div', { class: 'skeleton skeleton-tab' })
+  );
+
+  const skeletonBody = el('div', { id: 'pp-body' },
+    el('div', { class: 'skeleton skeleton-chart' }),
+    el('div', { class: 'skeleton-table' },
+      el('div', { class: 'skeleton-table-header' },
+        ...Array(8).fill().map(() => el('div', { class: 'skeleton skeleton-table-header-cell' }))
+      ),
+      ...Array(5).fill().map(() => 
+        el('div', { class: 'skeleton-table-row' },
+          ...Array(8).fill().map(() => el('div', { class: 'skeleton skeleton-table-cell' }))
+        )
+      )
+    )
+  );
+
+  sheet.append(skeletonHeader, skeletonTabs, skeletonBody);
 
   modal.append(sheet);
   // Close modal only by clicking the backdrop (outside the sheet)
@@ -279,6 +294,42 @@ export async function openPlayerPanel(pid) {
     if (p.team) {
       setTeamColors(p.team);
     }
+    
+    // Replace skeleton header and tabs with real content, keep body skeleton
+    const skeletonBodyContent = el('div', { id: 'pp-body' },
+      el('div', { class: 'skeleton skeleton-chart' }),
+      el('div', { class: 'skeleton-table' },
+        el('div', { class: 'skeleton-table-header' },
+          ...Array(2).fill().map(() => el('div', { class: 'skeleton skeleton-table-header-cell' }))
+        ),
+        ...Array(5).fill().map(() => 
+          el('div', { class: 'skeleton-table-row' },
+            ...Array(2).fill().map(() => el('div', { class: 'skeleton skeleton-table-cell' }))
+          )
+        )
+      )
+    );
+    
+    sheet.innerHTML = '';
+    sheet.append(
+      el('div', { class: 'pp-header' },
+        el('div', { class: 'pp-info' },
+          el('div', { class: 'pp-title', html: name }),
+          el('div', { class: 'pp-rankings', html: '' })
+        ),
+        el('div', { class: 'pp-player-card' },
+          el('img', { class: 'pp-player-img', src: '', alt: 'Player' }),
+          el('div', { class: 'pp-player-badge' }, '')
+        )
+      ),
+      el('div', { class: 'tabs' },
+        el('button', { class: 'tab active', 'data-tab':'points',   html:'Weekly Points' }),
+        el('button', { class: 'tab',         'data-tab':'gamelog',  html:'Game Log' }),
+        el('button', { class: 'tab',         'data-tab':'news',     html:'News' }),
+        el('button', { class: 'tab',         'data-tab':'teamdepth',html:'Team Depth' })
+      ),
+      skeletonBodyContent
+    );
     
     // Update title
     const titleEl = sheet.querySelector('.pp-title');
@@ -361,8 +412,24 @@ export async function openPlayerPanel(pid) {
     async function render(which) {
       const body = document.getElementById('pp-body');
       if (!body) return;
+      
       if (which === 'points') {
-        body.innerHTML = '<div>Loading weekly points…</div>';
+        // Show skeleton loader
+        body.innerHTML = '';
+        body.append(
+          el('div', { class: 'skeleton skeleton-chart' }),
+          el('div', { class: 'skeleton-table' },
+            el('div', { class: 'skeleton-table-header' },
+              ...Array(2).fill().map(() => el('div', { class: 'skeleton skeleton-table-header-cell' }))
+            ),
+            ...Array(5).fill().map(() => 
+              el('div', { class: 'skeleton-table-row' },
+                ...Array(2).fill().map(() => el('div', { class: 'skeleton skeleton-table-cell' }))
+              )
+            )
+          )
+        );
+        
         const data = await weeklyPointsPromise;
         const chartWrap = document.createElement('div');
         chartWrap.className = 'pp-chart-wrap';
@@ -372,7 +439,21 @@ export async function openPlayerPanel(pid) {
         body.appendChild(chartWrap);
         body.insertAdjacentHTML('beforeend', tblHtml);
       } else if (which === 'gamelog') {
-      body.innerHTML = '<div>Loading game log…</div>';
+      // Show skeleton loader
+      body.innerHTML = '';
+      body.append(
+        el('div', { class: 'skeleton-table' },
+          el('div', { class: 'skeleton-table-header' },
+            ...Array(8).fill().map(() => el('div', { class: 'skeleton skeleton-table-header-cell' }))
+          ),
+          ...Array(5).fill().map(() => 
+            el('div', { class: 'skeleton-table-row' },
+              ...Array(8).fill().map(() => el('div', { class: 'skeleton skeleton-table-cell' }))
+            )
+          )
+        )
+      );
+      
       const gl = await gameLogPromise;
       if (!gl.length) { body.innerHTML = '<div>No game log available.</div>'; return; }
         const pos = (p.pos || '').toUpperCase();
@@ -462,8 +543,125 @@ export async function openPlayerPanel(pid) {
         }
 
         body.innerHTML = table(headers, rows);
+} else if (which === 'news') {
+  // Show skeleton loader
+  body.innerHTML = '';
+  body.append(
+    ...Array(3).fill().map(() => 
+      el('div', { class: 'skeleton-news-item' },
+        el('div', { class: 'skeleton skeleton-news-headline' }),
+        el('div', { class: 'skeleton skeleton-news-description' }),
+        el('div', { class: 'skeleton skeleton-news-date' })
+      )
+    )
+  );
+
+  try {
+    // Get ESPN athlete ID from Sleeper player
+    const espnId = p.espn_id || null;
+    
+    if (!espnId) {
+      body.innerHTML = '<div class="no-data">ESPN player ID not available for news lookup.</div>';
+      return;
+    }
+
+    // Fetch news from ESPN Fantasy API
+    const newsUrl = `https://site.api.espn.com/apis/fantasy/v2/games/ffl/news/players?limit=25&playerId=${espnId}`;
+    const newsResponse = await fetch(newsUrl);
+    
+    if (!newsResponse.ok) {
+      body.innerHTML = '<div class="no-data">Unable to fetch news at this time.</div>';
+      return;
+    }
+    
+    const newsData = await newsResponse.json();
+    const allArticles = newsData.feed || [];
+    
+    // Filter for game recaps and injury updates only, and exclude articles with links
+    const relevantArticles = allArticles.filter(article => {
+      const headline = (article.headline || article.title || '').toLowerCase();
+      const description = (article.description || '').toLowerCase();
+      const combined = headline + ' ' + description;
+      
+      // Exclude articles that have hyperlinks
+      const link = article.links?.web?.href || article.link || '';
+      if (link) return false;
+      
+      // Keywords for game recaps
+      const gameRecapKeywords = [
+        'week ', 'game recap', 'highlights', 'performance', 'stats', 
+        'catches', 'yards', 'touchdown', 'carries', 'reception',
+        'scored', 'points', 'fantasy', 'passing', 'rushing', 'receiving'
+      ];
+      
+      // Keywords for injury updates
+      const injuryKeywords = [
+        'injury', 'injured', 'hurt', 'status', 'questionable', 'doubtful',
+        'out', 'dnp', 'practice', 'return', 'week-to-week', 'ir', 
+        'activated', 'designated', 'limited', 'full participant', 'ankle',
+        'knee', 'hamstring', 'concussion', 'shoulder', 'back', 'groin',
+        'calf', 'thigh', 'foot', 'hand', 'wrist', 'finger', 'toe'
+      ];
+      
+      const isGameRecap = gameRecapKeywords.some(keyword => combined.includes(keyword));
+      const isInjuryUpdate = injuryKeywords.some(keyword => combined.includes(keyword));
+      
+      return isGameRecap || isInjuryUpdate;
+    });
+    
+    if (!relevantArticles.length) {
+      body.innerHTML = '<div class="no-data">No recent game recaps or injury updates available for this player.</div>';
+      return;
+    }
+
+    // Display filtered news articles
+    body.innerHTML = '';
+    const newsContainer = el('div', { class: 'news-container' });
+    
+    relevantArticles.forEach(article => {
+      const headline = article.headline || article.title || 'No headline';
+      const description = article.description || '';
+      const published = article.published ? new Date(article.published).toLocaleDateString('en-US', {
+        month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit'
+      }) : '';
+      
+      // Determine article type based on content
+      const combined = (headline + ' ' + description).toLowerCase();
+      const injuryKeywords = ['injury', 'injured', 'hurt', 'status', 'questionable', 'doubtful', 'out', 'dnp', 'practice', 'return', 'ir', 'activated'];
+      const isInjury = injuryKeywords.some(keyword => combined.includes(keyword));
+      
+      const newsItem = el('div', { class: 'news-item' },
+        el('div', { class: 'news-headline' },
+          el('span', { 
+            class: isInjury ? 'news-tag injury-tag' : 'news-tag recap-tag',
+            html: isInjury ? 'INJURY UPDATE' : 'GAME RECAP'
+          }),
+          el('span', { html: headline })
+        ),
+        description ? el('div', { class: 'news-description', html: description }) : null,
+        published ? el('div', { class: 'news-meta' }, published) : null
+      );
+      
+      newsContainer.appendChild(newsItem);
+    });
+    
+    body.appendChild(newsContainer);
+    
+  } catch (error) {
+    console.error('Failed to fetch player news:', error);
+    body.innerHTML = '<div class="no-data">Failed to load news. Please try again later.</div>';
+  }
 } else if (which === 'teamdepth') {
-  body.innerHTML = '<div>Building team depth (takes a sec the first time)…</div>';
+  // Show skeleton loader
+  body.innerHTML = '';
+  body.append(
+    ...Array(3).fill().map(() => 
+      el('div', { class: 'skeleton-depth-group' },
+        el('div', { class: 'skeleton skeleton-depth-title' }),
+        ...Array(3).fill().map(() => el('div', { class: 'skeleton skeleton-depth-item' }))
+      )
+    )
+  );
 
   // need players map, season, week, and the clicked player's team
   const [players, season, week] = await Promise.all([ getPlayersMap(), getCurrentSeason(), getCurrentWeek() ]);

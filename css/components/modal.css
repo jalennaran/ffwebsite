@@ -424,3 +424,248 @@
   font-family: 'Rajdhani', sans-serif;
   letter-spacing: 0.02em;
 }
+
+/* Skeleton Loading Styles */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,.08) 0%,
+    rgba(255,255,255,.15) 50%,
+    rgba(255,255,255,.08) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.skeleton-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.skeleton-title {
+  height: 32px;
+  width: 60%;
+  max-width: 300px;
+}
+
+.skeleton-rankings {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.skeleton-rank {
+  height: 26px;
+  width: 120px;
+}
+
+.skeleton-player-card {
+  flex-shrink: 0;
+  width: 120px;
+  height: 120px;
+  border-radius: 8px;
+  margin-top: 12px;
+}
+
+.skeleton-tabs {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.skeleton-tab {
+  height: 32px;
+  width: 140px;
+  border-radius: 999px;
+}
+
+.skeleton-chart {
+  height: 200px;
+  width: 100%;
+  margin: 20px 0;
+  border-radius: 8px;
+}
+
+.skeleton-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+}
+
+.skeleton-table-header {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 8px;
+  padding: 12px;
+  background: rgba(255,255,255,.08);
+  border-radius: 8px 8px 0 0;
+}
+
+.skeleton-table-header-cell {
+  height: 16px;
+}
+
+.skeleton-table-row {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255,255,255,.1);
+}
+
+.skeleton-table-cell {
+  height: 16px;
+}
+
+.skeleton-depth-group {
+  margin: 16px 0;
+}
+
+.skeleton-depth-title {
+  height: 24px;
+  width: 80px;
+  margin-bottom: 12px;
+}
+
+.skeleton-depth-item {
+  height: 20px;
+  width: 100%;
+  max-width: 250px;
+  margin: 8px 0;
+}
+
+/* News Tab Styling */
+.news-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 12px 0;
+}
+
+.news-item {
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 8px;
+  padding: 16px;
+  backdrop-filter: blur(4px);
+  transition: all .2s ease;
+}
+
+.news-item:hover {
+  background: rgba(255,255,255,.12);
+  border-color: rgba(255,255,255,.18);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,.2);
+}
+
+.news-headline {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  line-height: 1.4;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.news-headline a {
+  color: rgba(255,255,255,.95);
+  text-decoration: none;
+  transition: opacity .2s ease;
+}
+
+.news-headline a:hover {
+  opacity: .8;
+  text-decoration: underline;
+}
+
+.news-tag {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.injury-tag {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  border: 1px solid rgba(220, 38, 38, 0.5);
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+}
+
+.recap-tag {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border: 1px solid rgba(37, 99, 235, 0.5);
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+.news-description {
+  color: rgba(255,255,255,.75);
+  line-height: 1.5;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+}
+
+.news-meta {
+  color: rgba(255,255,255,.5);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.no-data {
+  padding: 32px 16px;
+  text-align: center;
+  color: rgba(255,255,255,.7);
+  font-size: 1rem;
+  background: rgba(255,255,255,.06);
+  border-radius: 8px;
+  border: 1px dashed rgba(255,255,255,.15);
+}
+
+/* Skeleton for news items */
+.skeleton-news-item {
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeleton-news-headline {
+  height: 24px;
+  width: 80%;
+}
+
+.skeleton-news-description {
+  height: 48px;
+  width: 100%;
+}
+
+.skeleton-news-date {
+  height: 16px;
+  width: 150px;
+}

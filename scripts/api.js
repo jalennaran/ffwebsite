@@ -20,7 +20,7 @@ const __teamDepthCache = new Map();       // key: `TD:${season}:${endWeek}:${tea
 
 // --- players map cache ---
 export async function getPlayersMap() {
-  const key = 'sleeper_players_map_v3';  // Updated version to include injury_status
+  const key = 'sleeper_players_map_v4';  // Updated version to include ESPN ID
   const cached = localStorage.getItem(key);
   if (cached) return JSON.parse(cached);
   const data = await jget('/players/nfl'); // ~5MB
@@ -31,7 +31,8 @@ export async function getPlayersMap() {
       pos: p.position, 
       team: p.team, 
       number: p.number,
-      injury_status: p.injury_status
+      injury_status: p.injury_status,
+      espn_id: p.espn_id || p.fantasy_data_id
     };
   }
   localStorage.setItem(key, JSON.stringify(slim));
