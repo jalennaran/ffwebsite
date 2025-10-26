@@ -222,3 +222,159 @@
   .match-grid { grid-template-columns: repeat(2, minmax(260px, 1fr)); }
 }
 
+/* Skeleton Loading Styles for Matchups */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton-match-card {
+  padding: 0; 
+  overflow: hidden;
+  background: linear-gradient(125deg, 
+    rgba(44, 20, 72, 0.95),
+    rgba(15, 10, 29, 0.95)
+  );
+  border-radius: 16px;
+  box-shadow: 0 3px 10px rgba(0,0,0,.08);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,.1);
+  margin-bottom: 16px;
+}
+
+.skeleton-match-header {
+  display: flex; 
+  align-items: center; 
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255,255,255,.15);
+  gap: 16px;
+}
+
+.skeleton-match-left {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.skeleton-line {
+  height: 16px;
+  border-radius: 4px;
+}
+
+.skeleton-line.title {
+  height: 24px;
+  width: 60%;
+}
+
+.skeleton-line.avg {
+  width: 40%;
+}
+
+.skeleton-line.score {
+  height: 20px;
+  width: 100px;
+}
+
+/* Skeleton for expanded matchup body */
+.skeleton-match-body {
+  background: rgba(255,255,255,.04);
+  padding: 0 16px 16px;
+}
+
+.skeleton-match-scroller {
+  margin: 0 -16px;
+  padding: 0 16px 8px;
+}
+
+.skeleton-match-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(320px, 1fr));
+  gap: 12px;
+  width: 100%;
+}
+
+.skeleton-team-col {
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 12px;
+  padding: 12px 16px;
+  backdrop-filter: blur(4px);
+}
+
+.skeleton-team-name {
+  height: 24px;
+  width: 60%;
+  margin-bottom: 16px;
+}
+
+.skeleton-group-title {
+  height: 20px;
+  width: 100px;
+  margin: 16px 0 12px;
+}
+
+.skeleton-player-row {
+  display: grid;
+  grid-template-columns: 68px 1fr 64px;
+  gap: 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255,255,255,.1);
+  background: rgba(255,255,255,.04);
+  margin-bottom: 2px;
+}
+
+.skeleton-pos {
+  width: 40px;
+  height: 22px;
+}
+
+.skeleton-player-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  justify-content: center;
+}
+
+.skeleton-name {
+  width: 70%;
+  height: 16px;
+}
+
+.skeleton-team {
+  width: 40%;
+  height: 14px;
+}
+
+.skeleton-pts {
+  width: 50px;
+  height: 20px;
+  margin-left: auto;
+}
+
+@media (max-width: 900px){
+  .skeleton-match-grid { grid-template-columns: repeat(2, minmax(300px, 1fr)); }
+}
+
+@media (max-width: 700px){
+  .skeleton-match-grid { grid-template-columns: repeat(2, minmax(260px, 1fr)); }
+}
+
+

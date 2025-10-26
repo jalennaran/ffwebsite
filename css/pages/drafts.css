@@ -202,3 +202,113 @@ main, #main-content { min-width: 0; }
   .draft-board{ grid-template-columns: repeat(10, 160px); }
 }
 
+/* Skeleton Loading Styles for Drafts */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton-draft-card {
+  padding: 20px;
+  background: linear-gradient(125deg, 
+    rgba(44, 20, 72, 0.95),
+    rgba(15, 10, 29, 0.95)
+  );
+  border-radius: 16px;
+  box-shadow: 0 3px 10px rgba(0,0,0,.08);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,.1);
+  margin-bottom: 16px;
+  overflow: hidden;
+  position: relative;
+}
+
+.skeleton-draft-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255,255,255,.15);
+}
+
+.skeleton-draft-title {
+  height: 24px;
+  width: 70%;
+  margin-bottom: 12px;
+}
+
+.skeleton-draft-meta {
+  height: 16px;
+  width: 50%;
+  margin: 12px 20px;
+}
+
+.skeleton-draft-scroller {
+  overflow-x: auto;
+  overflow-y: hidden;
+  width: 100%;
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable both-edges;
+  padding: 16px;
+}
+
+.skeleton-draft-board {
+  display: grid;
+  grid-template-columns: repeat(10, 185px);
+  gap: 10px;
+  width: max-content;
+}
+
+.skeleton-tile {
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: rgba(255,255,255,.06);
+  backdrop-filter: blur(4px);
+  height: 90px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.skeleton-tile-line {
+  height: 14px;
+  border-radius: 4px;
+}
+
+.skeleton-tile-line.name {
+  width: 80%;
+}
+
+.skeleton-tile-line.pos {
+  width: 50%;
+}
+
+.skeleton-tile-line.owner {
+  width: 60%;
+  height: 12px;
+}
+
+@media (max-width: 1200px){
+  .skeleton-draft-board { grid-template-columns: repeat(10, 170px); }
+}
+
+@media (max-width: 900px){
+  .skeleton-draft-board { grid-template-columns: repeat(10, 160px); }
+}
+

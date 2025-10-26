@@ -2,9 +2,54 @@
 import { jget, getPlayersMap, LEAGUE_ID } from './api.js';
 import { el, avatarURL, shortName, teamNameFromUser, avatarURLSafe, posClass } from './ui.js';
 
+/* ----------------------- Skeleton Loaders ----------------------- */
+
+function createDraftCardSkeleton() {
+  const card = el('div', { class: 'skeleton-draft-card' });
+  
+  const header = el('div', { class: 'skeleton-draft-header' },
+    el('div', { class: 'skeleton skeleton-draft-title' })
+  );
+  
+  const meta = el('div', { class: 'skeleton skeleton-draft-meta' });
+  
+  const scroller = el('div', { class: 'skeleton-draft-scroller' });
+  const board = el('div', { class: 'skeleton-draft-board' });
+  
+  // Create skeleton tiles (typical draft has ~150 picks, show 50 as preview)
+  for (let i = 0; i < 50; i++) {
+    const tile = el('div', { class: 'skeleton-tile' },
+      el('div', { class: 'skeleton skeleton-tile-line name' }),
+      el('div', { class: 'skeleton skeleton-tile-line pos' }),
+      el('div', { class: 'skeleton skeleton-tile-line owner' })
+    );
+    board.appendChild(tile);
+  }
+  
+  scroller.appendChild(board);
+  card.appendChild(header);
+  card.appendChild(meta);
+  card.appendChild(scroller);
+  
+  return card;
+}
+
+function createDraftSkeletons(count = 3) {
+  const fragment = document.createDocumentFragment();
+  for (let i = 0; i < count; i++) {
+    fragment.appendChild(createDraftCardSkeleton());
+  }
+  return fragment;
+}
+
+/* ----------------------- Main Load Function ----------------------- */
+
 export default async function loadDrafts() {
   const root = document.getElementById('drafts-root');
-  root.textContent = 'Loading drafts...';
+  
+  // Show skeleton loaders immediately
+  root.innerHTML = '';
+  root.appendChild(createDraftSkeletons(3));
 
   try {
     const players = await getPlayersMap();

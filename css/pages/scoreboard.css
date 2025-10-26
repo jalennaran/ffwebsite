@@ -21,7 +21,8 @@
   color: rgba(255,255,255,.95);
   font-family: 'Outfit', sans-serif;
   cursor: pointer;
-  transition: transform .12s ease, box-shadow .12s ease;
+  transition: transform .12s ease, box-shadow .12s ease, opacity .3s ease;
+  opacity: 1;
 }
 .score-card:hover {
   transform: translateY(-1px);
@@ -147,24 +148,301 @@
   font-weight: 600;
 }
 
-/* Possession arrow */
-.pos-arrow {
-  width: 0; height: 0; display: inline-block;
-  border-top: 6px solid transparent; border-bottom: 6px solid transparent;
+/* Drive info pill */
+.drive-info-pill {
+  margin-top: 8px;
+  padding: 8px 14px;
+  background: rgba(0,0,0,.25);
+  border-radius: 12px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: rgba(255,255,255,.9);
+  font-weight: 600;
+  border: 1px solid rgba(255,255,255,.15);
+  backdrop-filter: blur(4px);
+  font-variant-numeric: tabular-nums;
 }
-.pos-arrow.left  { margin-right: 2px;  border-right: 8px solid #ea4335; }
-.pos-arrow.right { margin-left:  2px;  border-left:  8px solid #ea4335; }
 
-/* Live drive progress */
-.drivebar {
-  margin-top: 10px; height: 6px;
-  background: rgba(0,0,0,.08);
-  border-radius: 999px; overflow: hidden;
+/* Football Field Visualization */
+.football-field {
+  margin-top: 12px;
+  padding: 16px;
+  background: linear-gradient(180deg, #2d5016 0%, #1a3d0f 100%);
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 2px 8px rgba(0,0,0,.3);
 }
-.drivebar .drivebar-fill {
-  height: 100%; background: #0b74ff; width: 0%; transition: width .25s ease;
+
+.field-container {
+  position: relative;
+  height: 60px;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255,255,255,.15) 0px,
+    rgba(255,255,255,.15) 1px,
+    transparent 1px,
+    transparent calc(10% - 1px),
+    rgba(255,255,255,.15) calc(10% - 1px),
+    rgba(255,255,255,.15) 10%
+  );
+  border: 2px solid rgba(255,255,255,.3);
+  border-radius: 8px;
+  overflow: visible;
 }
-.drivebar.rz .drivebar-fill { background: #d21f3c; box-shadow: 0 0 10px rgba(210,31,60,.35); }
+
+/* Yard lines */
+.field-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 2px;
+  height: 100%;
+  background: rgba(255,255,255,.4);
+  z-index: 1;
+}
+
+/* Home team end zone (left) */
+.home-endzone {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 10%;
+  background: linear-gradient(90deg, var(--home-alpha) 0%, transparent 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: 2px solid rgba(255,255,255,.2);
+}
+
+/* Away team end zone (right) */
+.away-endzone {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 10%;
+  background: linear-gradient(90deg, transparent 0%, var(--away-alpha) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-left: 2px solid rgba(255,255,255,.2);
+}
+
+.endzone-logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  filter: brightness(1.2) drop-shadow(0 2px 4px rgba(0,0,0,.4));
+  opacity: 0.8;
+}
+
+/* Drive progress bar */
+.drive-progress {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 8px;
+  background: var(--drive-color);
+  border-radius: 4px;
+  z-index: 2;
+  box-shadow: 0 0 8px var(--drive-color), 0 2px 4px rgba(0,0,0,.3);
+  transition: all 0.3s ease;
+}
+
+/* Ball position marker */
+.ball-marker {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  background: #8b4513;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,.4), inset 0 1px 2px rgba(255,255,255,.3);
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  color: #fff;
+  font-weight: bold;
+}
+
+.ball-marker::after {
+  content: '🏈';
+  font-size: 12px;
+}
+
+/* Possession indicator */
+.possession-team {
+  position: absolute;
+  top: -24px;
+  transform: translateX(-50%);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: rgba(255,255,255,.9);
+  background: rgba(0,0,0,.4);
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0,0,0,.5);
+}
+
+/* Yard line labels */
+.yard-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  padding: 0 10%;
+  font-size: 0.7rem;
+  color: rgba(255,255,255,.6);
+  font-weight: 600;
+}
+
+/* Down and distance info */
+.field-info {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: rgba(255,255,255,.85);
+}
+
+.field-info-item {
+  background: rgba(0,0,0,.3);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+/* Win Probability Graph */
+.win-probability {
+  margin-top: 16px;
+  padding: 16px;
+  background: rgba(0,0,0,.2);
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.1);
+}
+
+.win-prob-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: rgba(255,255,255,.7);
+}
+
+.win-prob-team {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.win-prob-team img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,.3));
+}
+
+.win-prob-percentage {
+  font-size: 1.2rem;
+  color: rgba(255,255,255,.95);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.win-prob-chart {
+  position: relative;
+  height: 120px;
+  background: linear-gradient(180deg, rgba(255,255,255,.05) 0%, transparent 50%, rgba(255,255,255,.05) 100%);
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,.15);
+  overflow: hidden;
+}
+
+/* 50% line in middle */
+.win-prob-chart::before {
+  content: '50%';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 2px;
+  background: rgba(255,255,255,.3);
+  z-index: 1;
+  font-size: 0.7rem;
+  color: rgba(255,255,255,.5);
+  padding-left: 4px;
+  line-height: 0;
+}
+
+/* Quarter markers on x-axis */
+.win-prob-quarters {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  padding: 0 4px;
+  font-size: 0.7rem;
+  color: rgba(255,255,255,.5);
+  font-weight: 600;
+}
+
+/* SVG path for the probability line */
+.win-prob-path {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+}
+
+.win-prob-line {
+  fill: none;
+  stroke: rgba(255,255,255,.95);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,.5));
+}
+
+/* Area fill under/over the line */
+.win-prob-area-home {
+  fill: var(--home);
+  opacity: 0.35;
+}
+
+.win-prob-area-away {
+  fill: var(--away);
+  opacity: 0.35;
+}
+
+/* Current position marker */
+.win-prob-marker {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: #fff;
+  border: 2px solid rgba(0,0,0,.4);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+  box-shadow: 0 2px 6px rgba(0,0,0,.4);
+}
 
 /* --- Expanded details --- */
 .score-card .details {
@@ -546,3 +824,163 @@ body {
   .app-header .brand{ font-size: 1rem; }
   .hamburger{ width: 40px; height: 40px; }
 }
+
+/* Skeleton Loading Styles for Scoreboard */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Skeleton score card - uses team color gradients */
+.skeleton-score-card {
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--away) 70%, #fff),
+    color-mix(in oklab, var(--home) 70%, #fff)
+  );
+  border-radius: 18px;
+  padding: 12px 16px;
+  box-shadow: 0 3px 10px rgba(0,0,0,.06);
+  backdrop-filter: blur(6px);
+  color: rgba(255,255,255,.95);
+  font-family: 'Outfit', sans-serif;
+  margin-bottom: 18px;
+}
+
+.skeleton-score-grid {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 10px;
+}
+
+.skeleton-team-col {
+  padding: 6px 10px;
+}
+
+.skeleton-team-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: nowrap;
+}
+
+.skeleton-logo {
+  width: 84px;
+  height: 84px;
+  border-radius: 8px;
+}
+
+.skeleton-team-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.skeleton-abbr {
+  height: 24px;
+  width: 80px;
+}
+
+.skeleton-record {
+  height: 16px;
+  width: 60px;
+}
+
+.skeleton-score {
+  height: 40px;
+  width: 50px;
+  margin-left: auto;
+}
+
+.skeleton-team-col.home .skeleton-team-row {
+  flex-direction: row-reverse;
+}
+
+.skeleton-team-col.home .skeleton-score {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+.skeleton-center-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: rgba(255,255,255,.14);
+  border-radius: 18px;
+  backdrop-filter: blur(6px);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.15);
+  border-left: 2px solid rgba(255,255,255,.20);
+  border-right: 2px solid rgba(255,255,255,.20);
+}
+
+.skeleton-pill {
+  height: 20px;
+  width: 80px;
+  border-radius: 999px;
+}
+
+.skeleton-status {
+  height: 16px;
+  width: 60px;
+}
+
+/* Responsive skeleton adjustments */
+@media (max-width: 600px) {
+  .skeleton-logo {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .skeleton-abbr {
+    height: 20px;
+    width: 60px;
+  }
+  
+  .skeleton-score {
+    height: 32px;
+    width: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .skeleton-logo {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .skeleton-abbr {
+    height: 18px;
+    width: 50px;
+  }
+  
+  .skeleton-score {
+    height: 28px;
+    width: 35px;
+  }
+  
+  .skeleton-center-col {
+    padding: 6px 8px;
+  }
+}
+

@@ -148,6 +148,86 @@ function getMatchupExtremes(matchups, ownerByRoster) {
   };
 }
 
+/* ----------------------- Skeleton Loaders ----------------------- */
+
+// Skeleton for scoreboard card
+function createScoreboardSkeleton() {
+  const card = el('div', { class: 'skeleton-card' });
+  card.appendChild(el('div', { class: 'skeleton skeleton-title' }));
+  
+  // Create 4-5 skeleton matchup rows
+  for (let i = 0; i < 5; i++) {
+    const matchupRow = el('div', { class: 'skeleton-matchup' },
+      el('div', { class: 'skeleton-team' },
+        el('div', { class: 'skeleton skeleton-line medium' }),
+        el('div', { class: 'skeleton skeleton-line large' }),
+        el('div', { class: 'skeleton skeleton-line small' })
+      ),
+      el('div', { class: 'skeleton skeleton-vs' }),
+      el('div', { class: 'skeleton-team' },
+        el('div', { class: 'skeleton skeleton-line medium' }),
+        el('div', { class: 'skeleton skeleton-line large' }),
+        el('div', { class: 'skeleton skeleton-line small' })
+      )
+    );
+    card.appendChild(matchupRow);
+  }
+  
+  return card;
+}
+
+// Skeleton for trending players card
+function createTrendingSkeleton() {
+  const card = el('div', { class: 'skeleton-card' });
+  card.appendChild(el('div', { class: 'skeleton skeleton-title' }));
+  
+  // Create 8 skeleton rows
+  for (let i = 0; i < 8; i++) {
+    const row = el('div', { class: 'skeleton-row' },
+      el('div', { class: 'skeleton skeleton-line full' }),
+      el('div', { class: 'skeleton skeleton-line medium' })
+    );
+    card.appendChild(row);
+  }
+  
+  return card;
+}
+
+// Skeleton for standings card
+function createStandingsSkeleton() {
+  const card = el('div', { class: 'skeleton-card' });
+  card.appendChild(el('div', { class: 'skeleton skeleton-title' }));
+  
+  // Create 10 skeleton rows
+  for (let i = 0; i < 10; i++) {
+    const row = el('div', { class: 'skeleton-row' },
+      el('div', { class: 'skeleton skeleton-line full' })
+    );
+    card.appendChild(row);
+  }
+  
+  return card;
+}
+
+// Skeleton for recap card (larger)
+function createRecapSkeleton() {
+  const card = el('div', { class: 'skeleton-card' });
+  card.appendChild(el('div', { class: 'skeleton skeleton-title' }));
+  
+  // Create multiple sections with rows
+  for (let section = 0; section < 3; section++) {
+    card.appendChild(el('div', { class: 'skeleton skeleton-line medium', style: 'margin: 1rem 0 0.5rem 0; height: 20px;' }));
+    for (let i = 0; i < 4; i++) {
+      const row = el('div', { class: 'skeleton-row' },
+        el('div', { class: 'skeleton skeleton-line full' })
+      );
+      card.appendChild(row);
+    }
+  }
+  
+  return card;
+}
+
 /* ----------------------- Card Renderers ----------------------- */
 
 // Current Scoreboard Card
@@ -438,13 +518,26 @@ export default async function loadHomepage() {
   const root = document.getElementById('home-root');
   if (!root) return;
   
-  root.innerHTML = '<p>Loading homepage...</p>';
+  // Create card grid with skeleton loaders
+  const grid = el('div', { class: 'home-grid' });
+  
+  // Add skeleton loaders immediately
+  const scoreboardSkeleton = createScoreboardSkeleton();
+  const trendingSkeleton = createTrendingSkeleton();
+  const standingsSkeleton = createStandingsSkeleton();
+  const recapSkeleton = createRecapSkeleton();
+  recapSkeleton.style.gridColumn = '1 / -1'; // Make recap skeleton span full width
+  
+  grid.appendChild(scoreboardSkeleton);
+  grid.appendChild(trendingSkeleton);
+  grid.appendChild(standingsSkeleton);
+  grid.appendChild(recapSkeleton);
+  
+  root.innerHTML = '';
+  root.appendChild(grid);
   
   try {
     const week = await getCurrentWeek();
-    
-    // Create card grid
-    const grid = el('div', { class: 'home-grid' });
     
     // Render all cards
     const [
@@ -459,13 +552,11 @@ export default async function loadHomepage() {
       renderPreviousWeekRecap(week)
     ]);
     
-    grid.appendChild(scoreboardCard);
-    grid.appendChild(trendingCard);
-    grid.appendChild(standingsCard);
-    grid.appendChild(recapCard);
-    
-    root.innerHTML = '';
-    root.appendChild(grid);
+    // Replace skeleton loaders with actual content
+    grid.replaceChild(scoreboardCard, scoreboardSkeleton);
+    grid.replaceChild(trendingCard, trendingSkeleton);
+    grid.replaceChild(standingsCard, standingsSkeleton);
+    grid.replaceChild(recapCard, recapSkeleton);
     
   } catch (e) {
     console.error('Error loading homepage:', e);

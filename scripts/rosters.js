@@ -6,9 +6,68 @@ import {
 } from './api.js';
 import { el, sanitizeName } from './ui.js';
 
+/* ----------------------- Skeleton Loaders ----------------------- */
+
+function createRosterCardSkeleton() {
+  const card = el('div', { class: 'skeleton-ros-card' });
+  
+  const header = el('div', { class: 'skeleton-ros-header' },
+    el('div', { class: 'skeleton skeleton-line title' }),
+    el('div', { class: 'skeleton skeleton-line meta' })
+  );
+  
+  card.appendChild(header);
+  return card;
+}
+
+function createRosterCardSkeletons(count = 10) {
+  const fragment = document.createDocumentFragment();
+  for (let i = 0; i < count; i++) {
+    fragment.appendChild(createRosterCardSkeleton());
+  }
+  return fragment;
+}
+
+function createExpandedRosterSkeleton() {
+  const body = el('div', { class: 'skeleton-ros-body' });
+  
+  // Create skeleton sections for Starters, Bench, IR, Taxi
+  const sections = ['Starters', 'Bench', 'IR', 'Taxi'];
+  const playerCounts = [9, 6, 3, 2]; // Typical player counts per section
+  
+  sections.forEach((sectionName, idx) => {
+    const section = el('div', { class: 'skeleton-section' });
+    section.appendChild(el('div', { class: 'skeleton skeleton-section-title' }));
+    
+    // Add player rows
+    for (let i = 0; i < playerCounts[idx]; i++) {
+      const row = el('div', { class: 'skeleton-player-row' },
+        el('div', {}, el('div', { class: 'skeleton skeleton-pos' })),
+        el('div', {}, el('div', { class: 'skeleton skeleton-img' })),
+        el('div', { class: 'skeleton-player-info' },
+          el('div', { class: 'skeleton skeleton-name' }),
+          el('div', { class: 'skeleton skeleton-team' })
+        ),
+        el('div', {}, el('div', { class: 'skeleton skeleton-badge' })),
+        el('div', {}, el('div', { class: 'skeleton skeleton-badge' }))
+      );
+      section.appendChild(row);
+    }
+    
+    body.appendChild(section);
+  });
+  
+  return body;
+}
+
+/* ----------------------- Main Load Function ----------------------- */
+
 export default async function loadRosters() {
   const root = document.getElementById('rosters-root');
-  root.textContent = 'Loading rosters...';
+  
+  // Show skeleton loaders immediately
+  root.innerHTML = '';
+  root.appendChild(createRosterCardSkeletons(10));
 
   // helpers
   const POS_ORDER = { QB:0, RB:1, WR:2, TE:3, K:4, DST:5, DEF:5 };
@@ -76,6 +135,9 @@ export default async function loadRosters() {
       const body   = el('div', { class:'ros-body' });
       const inner  = el('div', { class:'ros-inner' });
 
+      // Track if content has been loaded
+      let contentLoaded = false;
+
       inner.append(section('Starters', startersList, true));
       inner.append(section('Bench', benchList));
       inner.append(section('IR', irList));
@@ -83,7 +145,29 @@ export default async function loadRosters() {
 
       body.append(inner);
       card.append(header, body);
-      const toggle = () => body.classList.toggle('open');
+      
+      const toggle = () => {
+        const isOpening = !body.classList.contains('open');
+        
+        if (isOpening && !contentLoaded) {
+          // Show skeleton while loading
+          const skeleton = createExpandedRosterSkeleton();
+          skeleton.classList.add('open');
+          body.innerHTML = '';
+          body.appendChild(skeleton);
+          body.classList.add('open');
+          
+          // Replace with actual content after a brief moment
+          setTimeout(() => {
+            body.innerHTML = '';
+            body.appendChild(inner);
+            contentLoaded = true;
+          }, 300);
+        } else {
+          body.classList.toggle('open');
+        }
+      };
+      
       header.addEventListener('click', toggle);
       header.addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' ') { e.preventDefault(); toggle(); } });
 

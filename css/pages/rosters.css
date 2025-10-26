@@ -233,3 +233,122 @@
   border: 2px solid transparent;
   background-clip: padding-box;
 }
+
+/* Skeleton Loading Styles for Rosters */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton-ros-card {
+  padding: 0; 
+  overflow: hidden;
+  background: linear-gradient(125deg, 
+    rgba(44, 20, 72, 0.95),
+    rgba(15, 10, 29, 0.95)
+  );
+  border-radius: 16px;
+  box-shadow: 0 3px 10px rgba(0,0,0,.15);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,.1);
+  margin-bottom: 16px;
+}
+
+.skeleton-ros-header {
+  display: flex; 
+  align-items: center; 
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255,255,255,.15);
+  gap: 12px;
+}
+
+.skeleton-line {
+  height: 16px;
+  border-radius: 4px;
+}
+
+.skeleton-line.title {
+  height: 24px;
+  width: 60%;
+}
+
+.skeleton-line.meta {
+  width: 80px;
+}
+
+/* Skeleton for expanded roster body */
+.skeleton-ros-body {
+  background: rgba(255,255,255,.04);
+  padding: 16px 20px;
+}
+
+.skeleton-section {
+  margin-bottom: 24px;
+}
+
+.skeleton-section-title {
+  height: 20px;
+  width: 120px;
+  margin-bottom: 12px;
+}
+
+.skeleton-player-row {
+  display: grid; 
+  grid-template-columns: 68px 48px 1fr max-content max-content;
+  gap: 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255,255,255,.1);
+  background: rgba(255,255,255,.04);
+  margin-bottom: 2px;
+}
+
+.skeleton-pos {
+  width: 40px;
+  height: 22px;
+}
+
+.skeleton-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+}
+
+.skeleton-player-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  justify-content: center;
+}
+
+.skeleton-name {
+  width: 70%;
+  height: 16px;
+}
+
+.skeleton-team {
+  width: 40%;
+  height: 14px;
+}
+
+.skeleton-badge {
+  width: 60px;
+  height: 22px;
+}
+

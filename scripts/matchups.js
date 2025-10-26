@@ -2,9 +2,86 @@
 import { getCurrentWeek, getLeagueBundle, getPlayersMap, getAvgByRosterUpTo, jget, LEAGUE_ID } from './api.js';
 import { el, sanitizeName } from './ui.js';
 
+/* ----------------------- Skeleton Loader ----------------------- */
+
+function createMatchupSkeleton() {
+  const card = el('div', { class: 'skeleton-match-card' });
+  
+  const header = el('div', { class: 'skeleton-match-header' },
+    el('div', { class: 'skeleton-match-left' },
+      el('div', { class: 'skeleton skeleton-line title' }),
+      el('div', { class: 'skeleton skeleton-line avg' })
+    ),
+    el('div', { class: 'skeleton skeleton-line score' })
+  );
+  
+  card.appendChild(header);
+  return card;
+}
+
+function createMatchupSkeletons(count = 6) {
+  const fragment = document.createDocumentFragment();
+  for (let i = 0; i < count; i++) {
+    fragment.appendChild(createMatchupSkeleton());
+  }
+  return fragment;
+}
+
+function createExpandedMatchupSkeleton() {
+  const body = el('div', { class: 'skeleton-match-body' });
+  const scroller = el('div', { class: 'skeleton-match-scroller' });
+  const grid = el('div', { class: 'skeleton-match-grid' });
+  
+  // Create two team columns
+  for (let team = 0; team < 2; team++) {
+    const col = el('div', { class: 'skeleton-team-col' });
+    col.appendChild(el('div', { class: 'skeleton skeleton-team-name' }));
+    
+    // Starters section
+    col.appendChild(el('div', { class: 'skeleton skeleton-group-title' }));
+    for (let i = 0; i < 9; i++) {
+      const row = el('div', { class: 'skeleton-player-row' },
+        el('div', {}, el('div', { class: 'skeleton skeleton-pos' })),
+        el('div', { class: 'skeleton-player-info' },
+          el('div', { class: 'skeleton skeleton-name' }),
+          el('div', { class: 'skeleton skeleton-team' })
+        ),
+        el('div', {}, el('div', { class: 'skeleton skeleton-pts' }))
+      );
+      col.appendChild(row);
+    }
+    
+    // Bench section
+    col.appendChild(el('div', { class: 'skeleton skeleton-group-title' }));
+    for (let i = 0; i < 6; i++) {
+      const row = el('div', { class: 'skeleton-player-row' },
+        el('div', {}, el('div', { class: 'skeleton skeleton-pos' })),
+        el('div', { class: 'skeleton-player-info' },
+          el('div', { class: 'skeleton skeleton-name' }),
+          el('div', { class: 'skeleton skeleton-team' })
+        ),
+        el('div', {}, el('div', { class: 'skeleton skeleton-pts' }))
+      );
+      col.appendChild(row);
+    }
+    
+    grid.appendChild(col);
+  }
+  
+  scroller.appendChild(grid);
+  body.appendChild(scroller);
+  return body;
+}
+
+/* ----------------------- Main Load Function ----------------------- */
+
 export default async function loadMatchups() {
   const root = document.getElementById('matchups-root');
-  root.textContent = 'Loading matchups...';
+  
+  // Show skeleton loaders immediately
+  root.innerHTML = '';
+  root.appendChild(createMatchupSkeletons(6));
+  
   try {
     const [week, { ownerByRoster }, players] = await Promise.all([
       getCurrentWeek(),
@@ -43,7 +120,6 @@ export default async function loadMatchups() {
       card.append(header);
 
       // Body (hidden by default)
-      // Body (hidden by default)
       const body = el('div', { class: 'match-body' });
 
       // scroller + wide grid (same behavior as drafts)
@@ -57,9 +133,32 @@ export default async function loadMatchups() {
       body.append(scroller);
       card.append(body);
 
+      // Track if content has been loaded
+      let contentLoaded = false;
+      const actualContent = scroller.cloneNode(true);
 
-      // Toggle logic
-      const toggle = () => body.classList.toggle('open');
+      // Toggle logic with skeleton
+      const toggle = () => {
+        const isOpening = !body.classList.contains('open');
+        
+        if (isOpening && !contentLoaded) {
+          // Show skeleton while loading
+          const skeleton = createExpandedMatchupSkeleton();
+          body.innerHTML = '';
+          body.appendChild(skeleton);
+          body.classList.add('open');
+          
+          // Replace with actual content after a brief moment
+          setTimeout(() => {
+            body.innerHTML = '';
+            body.appendChild(scroller);
+            contentLoaded = true;
+          }, 300);
+        } else {
+          body.classList.toggle('open');
+        }
+      };
+      
       header.addEventListener('click', toggle);
       header.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
 
