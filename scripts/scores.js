@@ -187,10 +187,11 @@ const badge = (text, cls = '') => el('span', { class: `pill ${cls}` }, text);
 
 /* ----------------------- Drive Info Pill ----------------------- */
 
-function createDriveInfoPill(comp, isLive) {
-  if (!comp || !isLive) return null;
+function createDriveInfoPill(summaryData, isLive) {
+  if (!summaryData || !isLive) return null;
   
-  const drives = comp?.drives;
+  // Drives data comes from summary API, not scoreboard
+  const drives = summaryData?.drives;
   if (!drives || !drives.current) return null;
   
   const currentDrive = drives.current;
@@ -200,10 +201,10 @@ function createDriveInfoPill(comp, isLive) {
   const yards = currentDrive?.yards || 0;
   const timeElapsed = currentDrive?.timeElapsed?.displayValue || currentDrive?.displayValue;
   
-  // Get current down and distance
-  const sit = comp?.situation;
-  const downDistance = sit?.downDistanceText || sit?.shortDownDistanceText;
-  const yardLine = sit?.yardLineText || sit?.possessionText;
+  // Get current down and distance from summary
+  const situation = summaryData?.situation;
+  const downDistance = situation?.downDistanceText || situation?.shortDownDistanceText;
+  const yardLine = situation?.yardLineText || situation?.possessionText;
   
   // Build drive description
   const parts = [];
@@ -237,7 +238,7 @@ function createDriveInfoPill(comp, isLive) {
 
 /* ----------------------- Football Field Visualization ----------------------- */
 
-function createFootballField(comp, homeColor, awayColor, gameState) {
+function createFootballField(comp, homeColor, awayColor, gameState, summaryData) {
   if (!comp) return null;
   
   const teams = comp?.competitors || [];
@@ -249,7 +250,8 @@ function createFootballField(comp, homeColor, awayColor, gameState) {
   const homeAbbr = home?.team?.abbreviation;
   const awayAbbr = away?.team?.abbreviation;
   
-  const sit = comp?.situation;
+  // Situation data comes from summary API
+  const sit = summaryData?.situation;
   const stat = comp?.status;
   const state = gameState || stat?.type?.state;
   
@@ -276,10 +278,31 @@ function createFootballField(comp, homeColor, awayColor, gameState) {
   fieldContainer.appendChild(homeEndzone);
   fieldContainer.appendChild(awayEndzone);
   
-  // Add yard line labels
+  // Add yard line markers (numbers at each 10-yard line)
+  // Positions correspond to yard lines: 10, 20, 30, 40, 50, 40, 30, 20, 10
+  const yardMarkers = [
+    { position: 18, label: '10' },   // Home 10
+    { position: 26, label: '20' },   // Home 20
+    { position: 34, label: '30' },   // Home 30
+    { position: 42, label: '40' },   // Home 40
+    { position: 50, label: '50' },   // 50 yard line
+    { position: 58, label: '40' },   // Away 40
+    { position: 66, label: '30' },   // Away 30
+    { position: 74, label: '20' },   // Away 20
+    { position: 82, label: '10' },   // Away 10
+  ];
+  
+  yardMarkers.forEach(({ position, label }) => {
+    const marker = el('div', { 
+      class: 'yard-marker',
+      style: `left: ${position}%;`
+    }, label);
+    fieldContainer.appendChild(marker);
+  });
+  
+  // Add team labels at endzones
   const yardLabels = el('div', { class: 'yard-labels' },
     el('span', {}, homeAbbr || 'HOME'),
-    el('span', {}, '50'),
     el('span', {}, awayAbbr || 'AWAY')
   );
   
@@ -298,17 +321,24 @@ function createFootballField(comp, homeColor, awayColor, gameState) {
       // Determine which team's territory (home is left, away is right)
       const isHomeTerritory = yardTeam === homeAbbr;
       
-      // Calculate ball position (0-100, where 0 is home endzone, 100 is away endzone)
-      let ballPosition;
+      // Calculate ball position on the actual 100-yard field (0-100)
+      let fieldPosition;
       if (isHomeTerritory) {
-        ballPosition = yardLine; // Home 25 = position 25
+        fieldPosition = yardLine; // Home 25 = position 25
       } else {
-        ballPosition = 100 - yardLine; // Away 25 = position 75
+        fieldPosition = 100 - yardLine; // Away 25 = position 75
       }
+      
+      // Convert to percentage accounting for 10% endzones on each side
+      // The playable field is 80% of the container (10% left endzone + 80% field + 10% right endzone)
+      const ballPosition = 10 + (fieldPosition * 0.8); // Map 0-100 yards to 10%-90% of container
       
       // Determine possession and drive color
       let driveColor = homeColor;
-      if (possAbbr === awayAbbr) {
+      const isPossHome = possAbbr === homeAbbr;
+      const isPossAway = possAbbr === awayAbbr;
+      
+      if (isPossAway) {
         driveColor = awayColor;
       }
       
@@ -316,19 +346,20 @@ function createFootballField(comp, homeColor, awayColor, gameState) {
       
       // Add drive progress bar
       let driveProgressEl = null;
-      const isPossHome = possAbbr === homeAbbr;
       
       if (isPossHome) {
-        // Home driving towards away (left to right)
+        // Home driving towards away (left to right) - from home endzone (10%) to ball
+        const driveWidth = ballPosition - 10;
         driveProgressEl = el('div', {
           class: 'drive-progress',
-          style: `left: 10%; width: ${ballPosition - 10}%;`
+          style: `left: 10%; width: ${driveWidth}%;`
         });
-      } else {
-        // Away driving towards home (right to left)
+      } else if (isPossAway) {
+        // Away driving towards home (right to left) - from away endzone (90%) to ball
+        const driveWidth = 90 - ballPosition;
         driveProgressEl = el('div', {
           class: 'drive-progress',
-          style: `right: 10%; width: ${100 - ballPosition - 10}%;`
+          style: `right: 10%; width: ${driveWidth}%;`
         });
       }
       
@@ -338,11 +369,12 @@ function createFootballField(comp, homeColor, awayColor, gameState) {
         style: `left: ${ballPosition}%;`
       });
       
-      // Add possession indicator
+      // Add possession indicator with arrow
+      const arrowSymbol = isPossHome ? '→' : isPossAway ? '←' : '';
       const possessionLabel = el('div', {
         class: 'possession-team',
         style: `left: ${ballPosition}%;`
-      }, possAbbr || '');
+      }, `${arrowSymbol} ${possAbbr || ''} ${arrowSymbol}`);
       
       ballMarker.appendChild(possessionLabel);
       
@@ -450,18 +482,29 @@ function compactLine(c) {
 
 
 /* --------------- Team block (logo → info → score center) ---------------- */
-function teamBlock(c, { side, hasBall } = { side: 'away', hasBall: false }) {
+function teamBlock(c, { side, hasBall, isHome } = { side: 'away', hasBall: false, isHome: false }) {
   const logo = c?.team?.logos?.[0]?.href || c?.team?.logo;
   const abbr = c?.team?.abbreviation || c?.team?.displayName || '—';
   const score = c?.score ?? '';
   const rec = c?.records?.[0]?.summary || '';
+  
+  // Build abbreviation display with icons
+  let abbrDisplay = abbr;
+  if (hasBall && isHome) {
+    abbrDisplay = `🏈 🏠 ${abbr}`;
+  } else if (hasBall) {
+    abbrDisplay = `🏈 ${abbr}`;
+  } else if (isHome) {
+    abbrDisplay = `🏠 ${abbr}`;
+  }
+  
   return el('div', { class: `team-col ${side}` },
     el('div', { class: 'team-row' },
       el('div', { class: 'logo-wrap' },
         logo ? el('img', { class: 'logo', src: logo, alt: abbr, loading: 'lazy' }) : null
       ),
       el('div', { class: 'info' },
-        el('div', { class: 'abbr' }, hasBall ? `🏈 ${abbr}` : abbr),
+        el('div', { class: 'abbr' }, abbrDisplay),
         rec ? el('div', { class: 'record' }, rec) : null
       ),
       el('div', { class: 'big-score' }, score)
@@ -503,17 +546,42 @@ function gameCard(evt) {
       'data-event-id': eventId
     },
     el('div', { class: 'score-grid' },
-      teamBlock(away, { side: 'away', hasBall: awayHasBall }),
+      teamBlock(away, { side: 'away', hasBall: awayHasBall, isHome: false }),
       el('div', { class: 'center-col' },
         live ? badge('LIVE', 'live') : post ? badge('FINAL', 'final') : badge('UPCOMING', 'pre'),
         el('div', { class: 'status' }, statusLine),
         sit?.downDistanceText ? el('div', { class: 'chips one' }, el('span', { class: 'chip' }, sit.downDistanceText)) : null,
         bNames.length ? el('div', { class: 'chips tv-inside' }, ...bNames.map((n) => el('span', { class: 'chip' }, n))) : null
       ),
-      teamBlock(home, { side: 'home', hasBall: homeHasBall })
-    ),
-    createDriveInfoPill(comp, live)
+      teamBlock(home, { side: 'home', hasBall: homeHasBall, isHome: true })
+    )
+    // Note: Drive info pill will be added after fetching summary data
   );
+
+  // Store summary data cache on the card
+  let summaryDataCache = null;
+  
+  // For live games, fetch summary data immediately to show drive info
+  if (live) {
+    (async () => {
+      try {
+        const res = await fetch(ESPN_SUMMARY(eventId));
+        if (res.ok) {
+          summaryDataCache = await res.json();
+          
+          // Add drive info pill if it doesn't exist
+          if (!card.querySelector('.drive-info-pill')) {
+            const drivePill = createDriveInfoPill(summaryDataCache, live);
+            if (drivePill) {
+              card.appendChild(drivePill);
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('Could not fetch summary for drive info:', err);
+      }
+    })();
+  }
 
   // Click to expand/collapse details
   let detailsLoaded = false;
@@ -521,11 +589,23 @@ function gameCard(evt) {
     if (e.target.closest('a')) return;
     const open = card.classList.toggle('expanded');
     
+    // Fetch summary data if not cached yet
+    if (open && !summaryDataCache) {
+      try {
+        const res = await fetch(ESPN_SUMMARY(eventId));
+        if (res.ok) {
+          summaryDataCache = await res.json();
+        }
+      } catch (err) {
+        console.warn('Could not fetch summary data:', err);
+      }
+    }
+    
     // Handle football field
     let field = card.querySelector('.football-field');
     
     if (open && !field) {
-      field = createFootballField(comp, homeC, awayC, state);
+      field = createFootballField(comp, homeC, awayC, state, summaryDataCache);
       
       // Insert field first
       const detailsElement = card.querySelector('.details');
@@ -544,7 +624,7 @@ function gameCard(evt) {
       card.appendChild(det);
       
       try {
-        const built = await buildDetails(evt);
+        const built = await buildDetails(evt, summaryDataCache);
         det.replaceWith(built);
         detailsLoaded = true;
       } catch (err) {
@@ -561,7 +641,7 @@ function gameCard(evt) {
 
 
 /* --------------------------- Details (expanded) -------------------------- */
-async function buildDetails(evt) {
+async function buildDetails(evt, summaryDataCache = null) {
   const comp = evt.competitions?.[0];
   const eventId = evt?.id || comp?.id;
 
@@ -599,10 +679,16 @@ async function buildDetails(evt) {
   // Pull top performers from summary endpoint
   const topByTeam = new Map();
   try {
-    const res = await fetch(ESPN_SUMMARY(eventId));
-    if (res.ok) {
-      const sum = await res.json();
-
+    // Use cached summary data if available, otherwise fetch it
+    let sum = summaryDataCache;
+    if (!sum) {
+      const res = await fetch(ESPN_SUMMARY(eventId));
+      if (res.ok) {
+        sum = await res.json();
+      }
+    }
+    
+    if (sum) {
       for (const side of (sum?.boxscore?.players || [])) {
         const teamAbbr =
           side?.team?.abbreviation ||
