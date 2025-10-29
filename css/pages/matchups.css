@@ -420,7 +420,9 @@
   text-shadow: 0 0 10px rgba(96, 165, 250, 0.5);
 }
 
-.pts { 
+/* Scope .pts styling to matchups page only */
+#matchups .pts,
+.match-card .pts { 
   text-align: center; 
   font-weight: 900;
   font-size: 1.3rem;
@@ -442,7 +444,8 @@
   letter-spacing: 0.05em;
 }
 
-.pts::before {
+#matchups .pts::before,
+.match-card .pts::before {
   content: '';
   position: absolute;
   top: 0;
@@ -459,7 +462,8 @@
   transition: opacity 0.2s ease;
 }
 
-.player-row:hover .pts::before {
+#matchups .player-row:hover .pts::before,
+.match-card .player-row:hover .pts::before {
   opacity: 1;
 }
 
@@ -794,7 +798,8 @@
     font-size: 0.95rem;
   }
 
-  .pts {
+  #matchups .pts,
+  .match-card .pts {
     font-size: 1rem;
     padding: 6px 10px;
     min-width: 60px;
@@ -873,7 +878,8 @@
     font-size: 0.9rem;
   }
 
-  .pts {
+  #matchups .pts,
+  .match-card .pts {
     font-size: 0.95rem;
     padding: 5px 8px;
     min-width: 55px;

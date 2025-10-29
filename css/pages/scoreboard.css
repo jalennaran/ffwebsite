@@ -235,7 +235,7 @@
   border: 0 !important;
 }
 
-/* Center “glass” chip (status + chips) */
+/* Center "glass" chip (status + chips) */
 .center-col {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 8px; padding: 10px 16px;
@@ -243,8 +243,9 @@
   border-radius: 18px;
   backdrop-filter: blur(6px);
   box-shadow: inset 0 0 0 1px rgba(255,255,255,.15);
-  border-left: 2px solid rgba(255,255,255,.20);
-  border-right: 2px solid rgba(255,255,255,.20);
+  /* Remove the purple borders on scoreboard */
+  border-left: none;
+  border-right: none;
 }
 .score-card.live  .center-col { background: rgba(255,255,255,.18); }
 .score-card.final .center-col { background: rgba(255,255,255,.10); }
@@ -957,7 +958,53 @@
 .toplist-row:last-child { border-bottom: 0; }
 .toplist .name { font-weight: 700; text-shadow: 0 1px 2px rgba(0,0,0,.25); }
 .toplist .pos  { opacity: .85; font-weight: 700; }
-.toplist .pts  { font-weight: 900; font-variant-numeric: tabular-nums; }
+
+/* Override matchups.css styling for scoreboard points - keep it simple */
+.details .toplist .pts,
+.details .pts,
+.score-card .details .toplist .pts,
+.score-card .details .toplist-row .pts,
+#scoreboard .toplist .pts,
+#scoreboard .toplist-row .pts,
+#scoreboard .pts,
+.score-card .toplist .pts,
+.score-card .details .pts { 
+  font-weight: 900 !important; 
+  font-variant-numeric: tabular-nums !important;
+  /* Remove the green box styling - keep it simple for scoreboard */
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  min-width: auto !important;
+  border-radius: 0 !important;
+  font-family: inherit !important;
+  letter-spacing: normal !important;
+  position: static !important;
+  font-size: inherit !important;
+  text-align: inherit !important;
+  justify-self: auto !important;
+}
+
+.details .toplist .pts::before,
+.details .pts::before,
+#scoreboard .toplist .pts::before,
+#scoreboard .pts::before,
+.score-card .toplist .pts::before,
+.score-card .details .pts::before,
+.score-card .details .toplist-row .pts::before {
+  content: none !important;
+  display: none !important;
+}
+
+/* Basic styling for scoreboard pts */
+#scoreboard .pts,
+.score-card .pts {
+  font-weight: 900;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+
 .toplist .line { grid-column: 1 / -1; font-size: .85rem; opacity: .8; }
 
 /* Left list: name & pts adjacent; Right list: align to right */
@@ -1447,5 +1494,36 @@ body {
   .skeleton-center-col {
     padding: 6px 8px;
   }
+}
+
+/* ==================== CRITICAL OVERRIDES FOR SCOREBOARD ==================== */
+/* Force remove matchups styling from scoreboard - must be at end of file */
+#scoreboard .pts,
+#nfl-scoreboard-root .pts,
+.score-card .pts,
+article.score-card .pts,
+.details .pts,
+.toplist .pts {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  min-width: auto !important;
+  border-radius: 0 !important;
+  font-family: inherit !important;
+  letter-spacing: normal !important;
+  position: static !important;
+  text-align: inherit !important;
+  justify-self: auto !important;
+}
+
+#scoreboard .pts::before,
+#nfl-scoreboard-root .pts::before,
+.score-card .pts::before,
+article.score-card .pts::before,
+.details .pts::before,
+.toplist .pts::before {
+  display: none !important;
+  content: none !important;
 }
 
