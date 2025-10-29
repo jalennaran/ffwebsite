@@ -23,6 +23,10 @@ export function el(tag, attrs = {}, ...children) {
   Object.entries(attrs).forEach(([k, v]) => {
     if (k === 'class') e.className = v;
     else if (k === 'html') e.innerHTML = v;
+    else if (typeof v === 'boolean') {
+      if (v) e.setAttribute(k, '');
+      // if false, don't set the attribute at all
+    }
     else e.setAttribute(k, v);
   });
   children.forEach(c => e.append(c));

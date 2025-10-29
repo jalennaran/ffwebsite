@@ -158,6 +158,10 @@ function elSafe(tag, attrs = {}, ...kids) {
     if (v == null) continue;
     if (k === 'class') n.className = v;
     else if (k.startsWith('on') && typeof v === 'function') n.addEventListener(k.slice(2), v);
+    else if (typeof v === 'boolean') {
+      if (v) n.setAttribute(k, '');
+      // if false, don't set the attribute at all
+    }
     else n.setAttribute(k, v);
   }
   for (const c of clean) n.append(typeof c === 'string' ? document.createTextNode(c) : c);
@@ -586,7 +590,8 @@ function gameCard(evt) {
   // Click to expand/collapse details
   let detailsLoaded = false;
   card.addEventListener('click', async (e) => {
-    if (e.target.closest('a')) return;
+    // Don't collapse if clicking interactive elements
+    if (e.target.closest('a, button, .game-info-tabs, .win-probability, .details-grid')) return;
     const open = card.classList.toggle('expanded');
     
     // Fetch summary data if not cached yet
@@ -633,6 +638,11 @@ function gameCard(evt) {
       }
     } else if (!open && det) {
       det.remove();
+    }
+    
+    // Trigger polling check when expanding/collapsing
+    if (typeof window.checkScoreboardPolling === 'function') {
+      window.checkScoreboardPolling();
     }
   });
 
@@ -781,12 +791,617 @@ async function buildDetails(evt, summaryDataCache = null) {
     topByTeam.set(homeAbbr, [{ name:'No stats yet', pos:'', pts:0, line:'' }]);
   }
 
-  // 3-column grid: Away Top | Linescore (center) | Home Top
-  return el('div', { class: 'details details-grid' },
-    renderTopList('away', awayAbbr, topByTeam.get(awayAbbr) || []),
-    renderLinescore(lines),
-    renderTopList('home', homeAbbr, topByTeam.get(homeAbbr) || []),
+  // Extract win probability data from summary
+  let winProbGraph = null;
+  try {
+    let sum = summaryDataCache;
+    if (!sum) {
+      const res = await fetch(ESPN_SUMMARY(eventId));
+      if (res.ok) {
+        sum = await res.json();
+      }
+    }
+    
+    if (sum && sum.winprobability && sum.winprobability.length > 0) {
+      // Get team colors
+      const homeColor = colorHex(home?.team?.color) || '#222';
+      const awayColor = colorHex(away?.team?.color) || '#222';
+      
+      winProbGraph = renderWinProbabilityGraph(
+        sum.winprobability,
+        sum.drives,
+        homeAbbr,
+        awayAbbr,
+        home?.team?.logos?.[0]?.href || home?.team?.logo,
+        away?.team?.logos?.[0]?.href || away?.team?.logo,
+        homeColor,
+        awayColor
+      );
+    }
+  } catch (e) {
+    console.warn("Win probability fetch failed", e);
+  }
+
+  // Create details container
+  const detailsContainer = el('div', { class: 'details' });
+  
+  // Add game info tabs if summary data available
+  let gameInfoTabs = null;
+  try {
+    let sum = summaryDataCache;
+    if (!sum) {
+      const res = await fetch(ESPN_SUMMARY(eventId));
+      if (res.ok) {
+        sum = await res.json();
+      }
+    }
+    
+    if (sum) {
+      gameInfoTabs = renderGameInfoTabs(sum, homeAbbr, awayAbbr);
+    }
+  } catch (e) {
+    console.warn("Game info tabs fetch failed", e);
+  }
+  
+  if (gameInfoTabs) {
+    detailsContainer.appendChild(gameInfoTabs);
+  }
+  
+  // Add win probability graph if available
+  if (winProbGraph) {
+    detailsContainer.appendChild(winProbGraph);
+  }
+  
+  // Add 3-column grid: Away Top | Linescore (center) | Home Top
+  detailsContainer.appendChild(
+    el('div', { class: 'details-grid' },
+      renderTopList('away', awayAbbr, topByTeam.get(awayAbbr) || []),
+      renderLinescore(lines),
+      renderTopList('home', homeAbbr, topByTeam.get(homeAbbr) || []),
+    )
   );
+  
+  return detailsContainer;
+}
+
+/* ------------------------- Game Info Tabs ------------------------- */
+function renderGameInfoTabs(summaryData, homeAbbr, awayAbbr) {
+  const container = el('div', { class: 'game-info-tabs' });
+  
+  // Tab buttons
+  const tabButtons = el('div', { class: 'tab-buttons' },
+    el('button', { class: 'tab-btn active', 'data-tab': 'venue' }, 'Venue Stats'),
+    el('button', { class: 'tab-btn', 'data-tab': 'leaders' }, 'Game Leaders'),
+    el('button', { class: 'tab-btn', 'data-tab': 'drives' }, 'Drives'),
+    el('button', { class: 'tab-btn', 'data-tab': 'stats' }, 'Game Stats')
+  );
+  
+  // Tab content container
+  const tabContent = el('div', { class: 'tab-content' });
+  
+  // Venue Stats Tab
+  const venueTab = renderVenueTab(summaryData);
+  venueTab.classList.add('tab-pane', 'active');
+  venueTab.setAttribute('data-tab-content', 'venue');
+  
+  // Game Leaders Tab
+  const leadersTab = renderGameLeadersTab(summaryData);
+  leadersTab.classList.add('tab-pane');
+  leadersTab.setAttribute('data-tab-content', 'leaders');
+  
+  // Drives Tab
+  const drivesTab = renderDrivesTab(summaryData);
+  drivesTab.classList.add('tab-pane');
+  drivesTab.setAttribute('data-tab-content', 'drives');
+  
+  // Game Stats Tab
+  const statsTab = renderGameStatsTab(summaryData, homeAbbr, awayAbbr);
+  statsTab.classList.add('tab-pane');
+  statsTab.setAttribute('data-tab-content', 'stats');
+  
+  tabContent.appendChild(venueTab);
+  tabContent.appendChild(leadersTab);
+  tabContent.appendChild(drivesTab);
+  tabContent.appendChild(statsTab);
+  
+  container.appendChild(tabButtons);
+  container.appendChild(tabContent);
+  
+  // Add tab switching logic
+  tabButtons.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation(); // Prevent card collapse
+      const targetTab = btn.getAttribute('data-tab');
+      
+      // Update active button
+      tabButtons.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      
+      // Update active content
+      tabContent.querySelectorAll('.tab-pane').forEach(pane => {
+        if (pane.getAttribute('data-tab-content') === targetTab) {
+          pane.classList.add('active');
+        } else {
+          pane.classList.remove('active');
+        }
+      });
+    });
+  });
+  
+  // Prevent clicks inside tab content from closing the card
+  container.addEventListener('click', (e) => {
+    e.stopPropagation();
+  });
+  
+  return container;
+}
+
+function renderVenueTab(summaryData) {
+  const gameInfo = summaryData?.gameInfo || {};
+  const venue = gameInfo?.venue || {};
+  const weather = gameInfo?.weather || {};
+  
+  const items = [];
+  
+  if (gameInfo.attendance) {
+    items.push(el('div', { class: 'info-row' },
+      el('span', { class: 'info-label' }, 'Attendance:'),
+      el('span', { class: 'info-value' }, gameInfo.attendance.toLocaleString())
+    ));
+  }
+  
+  if (venue.fullName) {
+    items.push(el('div', { class: 'info-row' },
+      el('span', { class: 'info-label' }, 'Venue:'),
+      el('span', { class: 'info-value' }, venue.fullName)
+    ));
+  }
+  
+  if (venue.address?.city && venue.address?.state) {
+    items.push(el('div', { class: 'info-row' },
+      el('span', { class: 'info-label' }, 'Location:'),
+      el('span', { class: 'info-value' }, `${venue.address.city}, ${venue.address.state}`)
+    ));
+  }
+  
+  if (venue.capacity) {
+    items.push(el('div', { class: 'info-row' },
+      el('span', { class: 'info-label' }, 'Capacity:'),
+      el('span', { class: 'info-value' }, venue.capacity.toLocaleString())
+    ));
+  }
+  
+  // Surface type
+  const surfaceType = venue.grass ? 'Grass' : 'Artificial Turf';
+  items.push(el('div', { class: 'info-row' },
+    el('span', { class: 'info-label' }, 'Surface:'),
+    el('span', { class: 'info-value' }, surfaceType)
+  ));
+  
+  // Indoor/Outdoor
+  const indoorOutdoor = venue.indoor ? 'Indoor' : 'Outdoor';
+  items.push(el('div', { class: 'info-row' },
+    el('span', { class: 'info-label' }, 'Type:'),
+    el('span', { class: 'info-value' }, indoorOutdoor)
+  ));
+  
+  // Weather (only if outdoor)
+  if (!venue.indoor && weather.displayValue) {
+    items.push(el('div', { class: 'info-row' },
+      el('span', { class: 'info-label' }, 'Weather:'),
+      el('span', { class: 'info-value' }, weather.displayValue)
+    ));
+    
+    if (weather.temperature) {
+      items.push(el('div', { class: 'info-row' },
+        el('span', { class: 'info-label' }, 'Temperature:'),
+        el('span', { class: 'info-value' }, `${weather.temperature}°F`)
+      ));
+    }
+  } else if (venue.indoor) {
+    items.push(el('div', { class: 'info-row' },
+      el('span', { class: 'info-label' }, 'Weather:'),
+      el('span', { class: 'info-value' }, 'Indoor')
+    ));
+  }
+  
+  return el('div', {}, ...items);
+}
+
+function renderGameLeadersTab(summaryData) {
+  const teams = summaryData?.boxscore?.players || [];
+  
+  if (teams.length < 2) {
+    return el('div', { class: 'info-row' }, 'No leader data available');
+  }
+  
+  const awayTeam = teams[0];
+  const homeTeam = teams[1];
+  
+  const categories = [
+    { name: 'passing', label: 'Passing Yards', statIndex: 1 }, // YDS is index 1
+    { name: 'rushing', label: 'Rushing Yards', statIndex: 1 }, // YDS is index 1
+    { name: 'receiving', label: 'Receiving Yards', statIndex: 1 }, // YDS is index 1
+    { name: 'defensive', label: 'Sacks', statIndex: 2 }, // SACKS is index 2
+    { name: 'defensive', label: 'Tackles', statIndex: 0 } // TOT is index 0
+  ];
+  
+  const leadersContainer = el('div', { class: 'leaders-container' });
+  
+  categories.forEach((category, idx) => {
+    // Get stats for this category from both teams
+    const awayStats = awayTeam.statistics?.find(s => s.name?.toLowerCase() === category.name);
+    const homeStats = homeTeam.statistics?.find(s => s.name?.toLowerCase() === category.name);
+    
+    if (!awayStats || !homeStats) return;
+    
+    // For defensive stats, we need to handle sacks vs tackles differently
+    let awayLeader, homeLeader;
+    
+    if (category.label === 'Tackles') {
+      // Find player with most tackles
+      awayLeader = awayStats.athletes?.reduce((max, a) => {
+        const tackles = parseFloat(a.stats?.[category.statIndex] || 0);
+        const maxTackles = parseFloat(max?.stats?.[category.statIndex] || 0);
+        return tackles > maxTackles ? a : max;
+      }, awayStats.athletes?.[0]);
+      
+      homeLeader = homeStats.athletes?.reduce((max, a) => {
+        const tackles = parseFloat(a.stats?.[category.statIndex] || 0);
+        const maxTackles = parseFloat(max?.stats?.[category.statIndex] || 0);
+        return tackles > maxTackles ? a : max;
+      }, homeStats.athletes?.[0]);
+    } else if (category.label === 'Sacks') {
+      // Find player with most sacks
+      awayLeader = awayStats.athletes?.reduce((max, a) => {
+        const sacks = parseFloat(a.stats?.[category.statIndex] || 0);
+        const maxSacks = parseFloat(max?.stats?.[category.statIndex] || 0);
+        return sacks > maxSacks ? a : max;
+      }, awayStats.athletes?.[0]);
+      
+      homeLeader = homeStats.athletes?.reduce((max, a) => {
+        const sacks = parseFloat(a.stats?.[category.statIndex] || 0);
+        const maxSacks = parseFloat(max?.stats?.[category.statIndex] || 0);
+        return sacks > maxSacks ? a : max;
+      }, homeStats.athletes?.[0]);
+    } else {
+      // For passing, rushing, receiving - first athlete is the leader
+      awayLeader = awayStats.athletes?.[0];
+      homeLeader = homeStats.athletes?.[0];
+    }
+    
+    if (!awayLeader || !homeLeader) return;
+    
+    const awayAthlete = awayLeader.athlete || {};
+    const homeAthlete = homeLeader.athlete || {};
+    const awayValue = awayLeader.stats?.[category.statIndex] || '0';
+    const homeValue = homeLeader.stats?.[category.statIndex] || '0';
+    const statLabel = awayStats.labels?.[category.statIndex] || category.label;
+    
+    // Create leader row
+    const leaderRow = el('div', { class: 'leader-row' },
+      // Away player (left side: headshot -> name -> stat)
+      el('div', { class: 'leader-player away' },
+        awayAthlete.headshot?.href ? el('img', { 
+          class: 'leader-headshot', 
+          src: awayAthlete.headshot.href, 
+          alt: awayAthlete.displayName 
+        }) : null,
+        el('div', { class: 'leader-info' },
+          el('div', { class: 'leader-name' }, awayAthlete.displayName || 'Unknown'),
+          el('div', { class: 'leader-team' }, awayTeam.team?.abbreviation || '')
+        ),
+        el('div', { class: 'leader-stat' }, awayValue)
+      ),
+      
+      // Category label
+      el('div', { class: 'leader-category' }, category.label),
+      
+      // Home player (right side: stat -> name -> headshot)
+      el('div', { class: 'leader-player home' },
+        el('div', { class: 'leader-stat' }, homeValue),
+        el('div', { class: 'leader-info' },
+          el('div', { class: 'leader-name' }, homeAthlete.displayName || 'Unknown'),
+          el('div', { class: 'leader-team' }, homeTeam.team?.abbreviation || '')
+        ),
+        homeAthlete.headshot?.href ? el('img', { 
+          class: 'leader-headshot', 
+          src: homeAthlete.headshot.href, 
+          alt: homeAthlete.displayName 
+        }) : null
+      )
+    );
+    
+    leadersContainer.appendChild(leaderRow);
+  });
+  
+  return leadersContainer;
+}
+
+function renderDrivesTab(summaryData) {
+  const drives = summaryData?.drives?.previous || [];
+  
+  if (drives.length === 0) {
+    return el('div', { class: 'info-row' }, 'No drive data available');
+  }
+  
+  const driveElements = drives.map((drive, index) => {
+    const team = drive.team?.abbreviation || 'Team';
+    const description = drive.description || '';
+    const result = drive.result || '';
+    
+    const driveHeader = el('div', { class: 'drive-header' },
+      el('span', { class: 'drive-number' }, `Drive ${index + 1}`),
+      el('span', { class: 'drive-team' }, team),
+      el('span', { class: 'drive-result' }, result)
+    );
+    
+    const driveInfo = el('div', { class: 'drive-info' }, description);
+    
+    const driveContainer = el('div', { class: 'drive-item' }, driveHeader, driveInfo);
+    
+    // Check if this drive had scoring plays
+    const plays = drive.plays || [];
+    const scoringPlays = plays.filter(p => p.scoringPlay);
+    
+    if (scoringPlays.length > 0) {
+      scoringPlays.forEach(play => {
+        const scoreText = `${play.awayScore}-${play.homeScore}`;
+        const playDesc = play.text || '';
+        
+        driveContainer.appendChild(
+          el('div', { class: 'scoring-play' },
+            el('div', { class: 'scoring-play-desc' }, playDesc),
+            el('div', { class: 'scoring-play-score' }, `Score: ${scoreText}`)
+          )
+        );
+      });
+    }
+    
+    return driveContainer;
+  });
+  
+  return el('div', { class: 'drives-list' }, ...driveElements);
+}
+
+function renderGameStatsTab(summaryData, homeAbbr, awayAbbr) {
+  const teams = summaryData?.boxscore?.teams || [];
+  
+  if (teams.length < 2) {
+    return el('div', { class: 'info-row' }, 'No team stats available');
+  }
+  
+  const awayTeam = teams.find(t => t.homeAway === 'away') || teams[0];
+  const homeTeam = teams.find(t => t.homeAway === 'home') || teams[1];
+  
+  // Get key stats to display
+  const keyStats = [
+    'firstDowns',
+    'totalYards',
+    'netPassingYards',
+    'rushingYards',
+    'turnovers',
+    'possessionTime',
+    'thirdDownEff',
+    'fourthDownEff',
+    'totalPenaltiesYards'
+  ];
+  
+  const statsGrid = el('div', { class: 'stats-grid' });
+  
+  // Header row
+  statsGrid.appendChild(
+    el('div', { class: 'stats-row stats-header' },
+      el('div', { class: 'stats-team' }, awayAbbr),
+      el('div', { class: 'stats-label' }, 'Stat'),
+      el('div', { class: 'stats-team' }, homeAbbr)
+    )
+  );
+  
+  // Get all unique stat names from both teams
+  const awayStats = awayTeam.statistics || [];
+  const homeStats = homeTeam.statistics || [];
+  
+  // Filter to key stats
+  const statsToShow = awayStats.filter(s => keyStats.includes(s.name));
+  
+  statsToShow.forEach(awayStat => {
+    const homeStat = homeStats.find(s => s.name === awayStat.name);
+    
+    if (homeStat) {
+      statsGrid.appendChild(
+        el('div', { class: 'stats-row' },
+          el('div', { class: 'stats-value' }, awayStat.displayValue),
+          el('div', { class: 'stats-label' }, awayStat.label),
+          el('div', { class: 'stats-value' }, homeStat.displayValue)
+        )
+      );
+    }
+  });
+  
+  return statsGrid;
+}
+
+/* ------------------------- Win Probability Graph ------------------------- */
+function renderWinProbabilityGraph(winProbData, drivesData, homeAbbr, awayAbbr, homeLogo, awayLogo, homeColor, awayColor) {
+  if (!winProbData || winProbData.length === 0) return null;
+
+  // Build a map of playId -> play details for timing information
+  const playMap = new Map();
+  const previousDrives = drivesData?.previous || [];
+  
+  for (const drive of previousDrives) {
+    const plays = drive?.plays || [];
+    for (const play of plays) {
+      playMap.set(play.id, {
+        period: play.period?.number || 1,
+        clock: play.clock?.displayValue || '',
+        homeScore: play.homeScore || 0,
+        awayScore: play.awayScore || 0
+      });
+    }
+  }
+
+  // Get current win probability (last entry)
+  const currentProb = winProbData[winProbData.length - 1];
+  const homeWinPct = (currentProb.homeWinPercentage * 100).toFixed(1);
+  const awayWinPct = ((1 - currentProb.homeWinPercentage) * 100).toFixed(1);
+
+  // Create container
+  const container = el('div', { 
+    class: 'win-probability',
+    style: `--home-color: ${homeColor}; --away-color: ${awayColor};`
+  });
+
+  // Header with team logos and current percentages
+  const header = el('div', { class: 'win-prob-header' },
+    el('div', { class: 'win-prob-team' },
+      awayLogo ? el('img', { src: awayLogo, alt: awayAbbr }) : null,
+      el('span', {}, awayAbbr),
+      el('span', { class: 'win-prob-percentage' }, `${awayWinPct}%`)
+    ),
+    el('div', { class: 'win-prob-team' },
+      el('span', { class: 'win-prob-percentage' }, `${homeWinPct}%`),
+      el('span', {}, homeAbbr),
+      homeLogo ? el('img', { src: homeLogo, alt: homeAbbr }) : null
+    )
+  );
+
+  // Create SVG graph
+  const width = 100; // percentage
+  const height = 120; // pixels
+  const padding = 0;
+
+  // Map data points to coordinates
+  const points = winProbData.map((item, index) => {
+    const x = (index / (winProbData.length - 1)) * 100;
+    const y = 100 - (item.homeWinPercentage * 100); // Invert Y (0 = top, 100 = bottom)
+    return { x, y, homeWinPct: item.homeWinPercentage };
+  });
+
+  // Create SVG path string
+  const pathData = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+  
+  // Create area fill paths - fill from line to 50% mark
+  // Home area: from 50% line down to the probability line (when home is winning)
+  let homeAreaPath = `M 0 50 L ${points[0].x} ${points[0].y} `;
+  points.forEach(p => {
+    homeAreaPath += `L ${p.x} ${Math.max(p.y, 50)} `;
+  });
+  homeAreaPath += `L 100 50 Z`;
+  
+  // Away area: from 50% line up to the probability line (when away is winning)
+  let awayAreaPath = `M 0 50 L ${points[0].x} ${points[0].y} `;
+  points.forEach(p => {
+    awayAreaPath += `L ${p.x} ${Math.min(p.y, 50)} `;
+  });
+  awayAreaPath += `L 100 50 Z`;
+
+  // Create SVG
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('class', 'win-prob-svg');
+  svg.setAttribute('viewBox', `0 0 100 100`);
+  svg.setAttribute('preserveAspectRatio', 'none');
+
+  // Add gradient fills
+  const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+  
+  // Home gradient
+  const homeGradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+  homeGradient.setAttribute('id', `homeGrad-${homeAbbr}`);
+  homeGradient.setAttribute('x1', '0');
+  homeGradient.setAttribute('y1', '1');
+  homeGradient.setAttribute('x2', '0');
+  homeGradient.setAttribute('y2', '0');
+  const homeStop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+  homeStop1.setAttribute('offset', '0%');
+  homeStop1.setAttribute('stop-color', homeColor);
+  homeStop1.setAttribute('stop-opacity', '0.35');
+  const homeStop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+  homeStop2.setAttribute('offset', '100%');
+  homeStop2.setAttribute('stop-color', homeColor);
+  homeStop2.setAttribute('stop-opacity', '0.05');
+  homeGradient.appendChild(homeStop1);
+  homeGradient.appendChild(homeStop2);
+  
+  // Away gradient
+  const awayGradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+  awayGradient.setAttribute('id', `awayGrad-${awayAbbr}`);
+  awayGradient.setAttribute('x1', '0');
+  awayGradient.setAttribute('y1', '0');
+  awayGradient.setAttribute('x2', '0');
+  awayGradient.setAttribute('y2', '1');
+  const awayStop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+  awayStop1.setAttribute('offset', '0%');
+  awayStop1.setAttribute('stop-color', awayColor);
+  awayStop1.setAttribute('stop-opacity', '0.35');
+  const awayStop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+  awayStop2.setAttribute('offset', '100%');
+  awayStop2.setAttribute('stop-color', awayColor);
+  awayStop2.setAttribute('stop-opacity', '0.05');
+  awayGradient.appendChild(awayStop1);
+  awayGradient.appendChild(awayStop2);
+  
+  defs.appendChild(homeGradient);
+  defs.appendChild(awayGradient);
+  svg.appendChild(defs);
+
+  // Add 50% reference line
+  const refLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+  refLine.setAttribute('x1', '0');
+  refLine.setAttribute('y1', '50');
+  refLine.setAttribute('x2', '100');
+  refLine.setAttribute('y2', '50');
+  refLine.setAttribute('stroke', 'rgba(255,255,255,0.2)');
+  refLine.setAttribute('stroke-width', '0.3');
+  refLine.setAttribute('stroke-dasharray', '2,2');
+  svg.appendChild(refLine);
+
+  // Add area fills - swap colors so away is bottom, home is top
+  const homeArea = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  homeArea.setAttribute('d', homeAreaPath);
+  homeArea.setAttribute('fill', `url(#awayGrad-${awayAbbr})`);
+  homeArea.setAttribute('class', 'win-prob-area-home');
+  svg.appendChild(homeArea);
+
+  const awayArea = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  awayArea.setAttribute('d', awayAreaPath);
+  awayArea.setAttribute('fill', `url(#homeGrad-${homeAbbr})`);
+  awayArea.setAttribute('class', 'win-prob-area-away');
+  svg.appendChild(awayArea);
+
+  // Add the main line - thin and clean
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', pathData);
+  path.setAttribute('fill', 'none');
+  path.setAttribute('stroke', '#ffffff');
+  path.setAttribute('stroke-width', '0.5');
+  path.setAttribute('vector-effect', 'non-scaling-stroke');
+  path.setAttribute('class', 'win-prob-line');
+  svg.appendChild(path);
+
+  // Chart container with proper aspect ratio
+  const chartContainer = el('div', { class: 'win-prob-chart' });
+  chartContainer.appendChild(svg);
+
+  // Quarter labels (approximate)
+  const quarters = el('div', { class: 'win-prob-quarters' },
+    el('span', {}, 'Q1'),
+    el('span', {}, 'Q2'),
+    el('span', {}, 'Q3'),
+    el('span', {}, 'Q4')
+  );
+
+  container.appendChild(header);
+  container.appendChild(chartContainer);
+  container.appendChild(quarters);
+
+  // Prevent clicks on win probability from closing the card
+  container.addEventListener('click', (e) => {
+    e.stopPropagation();
+  });
+
+  return container;
 }
 
 function renderTopList(side, abbr, list) {
@@ -834,7 +1449,152 @@ export default async function loadScores({ params = {}, pollMs = 20000 } = {}) {
   
   // Track expanded games by event ID
   const expandedGames = new Set();
-
+  
+  // Timer for polling
+  let timer = null;
+  
+  // Add week selector
+  const weekSelectorContainer = document.getElementById('week-selector-container');
+  if (weekSelectorContainer) {
+    const currentWeekData = await fetchScoreboard({});
+    const currentWeek = currentWeekData?.week?.number || 1;
+    const seasonType = currentWeekData?.season?.type || 2; // 2 = regular season
+    
+    // Get selected week from params or use current week
+    const selectedWeek = params.week || currentWeek;
+    
+    // Week navigation handlers
+    const handleWeekChange = async (newWeek) => {
+      params.week = newWeek;
+      params.seasontype = seasonType;
+      
+      // Update display
+      const weekDisplay = document.getElementById('current-week-display');
+      if (weekDisplay) weekDisplay.textContent = newWeek;
+      
+      // Update button states
+      const prevBtn = document.getElementById('prev-week');
+      const nextBtn = document.getElementById('next-week');
+      if (prevBtn) prevBtn.disabled = newWeek <= 1;
+      if (nextBtn) nextBtn.disabled = newWeek >= 18;
+      
+      // Clear timer if it exists
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
+      }
+      
+      // Reload with new week
+      expandedGames.clear();
+      await renderOnce(true);
+      
+      // Restart polling only if there are live games
+      const hasLiveGames = root.querySelectorAll('.score-card.live').length > 0;
+      if (hasLiveGames) {
+        timer = window.setTimeout(async function tick() {
+          const hasLiveGames = await renderOnce(false);
+          if (hasLiveGames) {
+            timer = window.setTimeout(tick, pollMs);
+          } else {
+            timer = null;
+          }
+        }, pollMs);
+      }
+    };
+    
+    // Create week selector with navigation
+    const prevBtn = el('button', { 
+      class: 'week-nav-btn prev', 
+      id: 'prev-week',
+      disabled: selectedWeek <= 1 
+    }, '◄');
+    
+    const nextBtn = el('button', { 
+      class: 'week-nav-btn next', 
+      id: 'next-week',
+      disabled: selectedWeek >= 18 
+    }, '►');
+    
+    const weekNumberDisplay = el('span', { class: 'week-number', id: 'current-week-display' }, selectedWeek);
+    const weekNumberInput = el('input', { 
+      type: 'number', 
+      class: 'week-number-input', 
+      id: 'week-number-input',
+      min: '1',
+      max: '18',
+      value: selectedWeek
+    });
+    
+    const weekSelector = el('div', { class: 'week-selector' },
+      el('div', { class: 'week-nav' },
+        prevBtn,
+        el('div', { class: 'week-display', id: 'week-display-container' },
+          el('span', { class: 'week-label' }, 'WEEK'),
+          weekNumberDisplay,
+          weekNumberInput
+        ),
+        nextBtn
+      )
+    );
+    
+    weekSelectorContainer.innerHTML = '';
+    weekSelectorContainer.appendChild(weekSelector);
+    
+    // Toggle between display and input on click
+    weekNumberDisplay.addEventListener('click', (e) => {
+      e.stopPropagation();
+      weekNumberDisplay.style.display = 'none';
+      weekNumberInput.style.display = 'block';
+      weekNumberInput.focus();
+      weekNumberInput.select();
+    });
+    
+    // Handle input submission
+    const submitWeekInput = () => {
+      const inputWeek = parseInt(weekNumberInput.value);
+      if (inputWeek >= 1 && inputWeek <= 18) {
+        weekNumberDisplay.style.display = 'block';
+        weekNumberInput.style.display = 'none';
+        handleWeekChange(inputWeek);
+      } else {
+        // Reset to current week if invalid
+        weekNumberInput.value = parseInt(weekNumberDisplay.textContent);
+        weekNumberDisplay.style.display = 'block';
+        weekNumberInput.style.display = 'none';
+      }
+    };
+    
+    weekNumberInput.addEventListener('blur', submitWeekInput);
+    weekNumberInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        submitWeekInput();
+      } else if (e.key === 'Escape') {
+        // Cancel edit
+        weekNumberInput.value = parseInt(weekNumberDisplay.textContent);
+        weekNumberDisplay.style.display = 'block';
+        weekNumberInput.style.display = 'none';
+      }
+    });
+    
+    // Attach event listeners after elements are in DOM
+    prevBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const currentDisplayedWeek = parseInt(document.getElementById('current-week-display').textContent);
+      if (currentDisplayedWeek > 1) {
+        handleWeekChange(currentDisplayedWeek - 1);
+      }
+    });
+    
+    nextBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const currentDisplayedWeek = parseInt(document.getElementById('current-week-display').textContent);
+      if (currentDisplayedWeek < 18) {
+        handleWeekChange(currentDisplayedWeek + 1);
+      }
+    });
+  }
+  
   const renderOnce = async (isInitialLoad = false) => {
     try {
       // Save currently expanded game IDs before re-rendering
@@ -1004,22 +1764,57 @@ export default async function loadScores({ params = {}, pollMs = 20000 } = {}) {
       root.textContent = 'Could not load scores.';
       console.error(e);
     }
+    
+    // Check if there are any expanded live games
+    const hasExpandedLiveGames = Array.from(root.querySelectorAll('.score-card.live.expanded')).length > 0;
+    return hasExpandedLiveGames;
   };
 
-  await renderOnce(true); // Initial load with skeleton
+  // Function to check if polling should be active
+  const checkPolling = () => {
+    const hasExpandedLiveGames = root.querySelectorAll('.score-card.live.expanded').length > 0;
+    
+    if (hasExpandedLiveGames && !timer) {
+      // Start polling
+      timer = window.setTimeout(async function tick() {
+        const stillNeedsPolling = await renderOnce(false);
+        if (stillNeedsPolling) {
+          timer = window.setTimeout(tick, pollMs);
+        } else {
+          timer = null;
+        }
+      }, pollMs);
+    } else if (!hasExpandedLiveGames && timer) {
+      // Stop polling
+      clearTimeout(timer);
+      timer = null;
+    }
+  };
+  
+  // Expose function globally so cards can trigger it
+  window.checkScoreboardPolling = checkPolling;
 
-  let timer = window.setTimeout(async function tick() {
-    await renderOnce(false); // Subsequent updates without skeleton
-    timer = window.setTimeout(tick, pollMs);
-  }, pollMs);
+  // Initial load with skeleton
+  const initialNeedsPolling = await renderOnce(true);
+
+  // Only start polling if there are expanded live games
+  if (initialNeedsPolling) {
+    timer = window.setTimeout(async function tick() {
+      const stillNeedsPolling = await renderOnce(false); // Subsequent updates without skeleton
+      // Only continue polling if there are expanded live games
+      if (stillNeedsPolling) {
+        timer = window.setTimeout(tick, pollMs);
+      } else {
+        timer = null;
+      }
+    }, pollMs);
+  }
 
   document.addEventListener('visibilitychange', () => {
     if (document.hidden && timer) { clearTimeout(timer); timer = null; }
     else if (!document.hidden && !timer) {
-      timer = window.setTimeout(async function tick() {
-        await renderOnce(false);
-        timer = window.setTimeout(tick, pollMs);
-      }, pollMs);
+      // Only restart polling if there are expanded live games
+      checkPolling();
     }
   });
 }

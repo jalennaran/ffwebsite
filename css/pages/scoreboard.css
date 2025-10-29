@@ -1,5 +1,148 @@
 /* Scoreboard */
 
+/* Week Selector */
+/* Week Selector Styles */
+.week-selector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 32px;
+  padding: 20px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(147, 51, 234, 0.15) 100%);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.week-nav {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.week-nav-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.week-nav-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(59, 130, 246, 0.4);
+  transform: translate(-50%, -50%);
+  transition: width 0.4s ease, height 0.4s ease;
+  pointer-events: none;
+}
+
+.week-nav-btn:hover:not(:disabled)::before {
+  width: 100%;
+  height: 100%;
+}
+
+.week-nav-btn:hover:not(:disabled) {
+  background: rgba(59, 130, 246, 0.3);
+  border-color: rgba(59, 130, 246, 0.5);
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.week-nav-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.week-nav-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.week-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 32px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(147, 51, 234, 0.2) 100%);
+  border-radius: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  min-width: 140px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.week-label {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.week-number {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: #fff;
+  line-height: 1;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.week-number:hover {
+  transform: scale(1.05);
+}
+
+.week-number-input {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: #fff;
+  line-height: 1;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  background: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  padding: 4px 8px;
+  width: 80px;
+  text-align: center;
+  display: none;
+  font-family: inherit;
+}
+
+.week-number-input:focus {
+  outline: none;
+  border-color: rgba(59, 130, 246, 0.8);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+/* Remove spinner arrows from number input */
+.week-number-input::-webkit-outer-spin-button,
+.week-number-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.week-number-input[type=number] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
 /* Layout container */
 #scoreboard .cards {
   display: grid;
@@ -347,9 +490,293 @@
   font-weight: 600;
 }
 
-/* Win Probability Graph */
+/* ==================== Game Info Tabs ==================== */
+.game-info-tabs {
+  margin: 16px 0;
+  background: rgba(0,0,0,.2);
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.1);
+  overflow: hidden;
+}
+
+.tab-buttons {
+  display: flex;
+  border-bottom: 1px solid rgba(255,255,255,.1);
+  background: rgba(0,0,0,.15);
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 12px 16px;
+  background: transparent;
+  border: none;
+  color: rgba(255,255,255,.6);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 2px solid transparent;
+}
+
+.tab-btn:hover {
+  color: rgba(255,255,255,.85);
+  background: rgba(255,255,255,.05);
+}
+
+.tab-btn.active {
+  color: #fff;
+  background: rgba(255,255,255,.08);
+  border-bottom-color: var(--accent, #4a9eff);
+}
+
+.tab-content {
+  padding: 16px;
+}
+
+.tab-content .tab-pane {
+  display: none;
+}
+
+.tab-content .tab-pane.active {
+  display: block;
+}
+
+/* Venue Tab Styles */
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  font-weight: 600;
+  color: rgba(255,255,255,.7);
+  font-size: 0.85rem;
+}
+
+.info-value {
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Game Leaders Tab Styles */
+.leaders-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.leader-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 16px;
+  align-items: center;
+  padding: 12px;
+  background: rgba(255,255,255,.04);
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,.08);
+}
+
+.leader-player {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.leader-player.away {
+  justify-content: flex-start;
+}
+
+.leader-player.home {
+  justify-content: flex-end;
+}
+
+.leader-headshot {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: rgba(255,255,255,.1);
+  border: 2px solid rgba(255,255,255,.2);
+}
+
+.leader-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.leader-player.home .leader-info {
+  align-items: flex-end;
+}
+
+.leader-name {
+  font-weight: 600;
+  color: #fff;
+  font-size: 0.9rem;
+}
+
+.leader-team {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,.6);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.leader-stat {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+  min-width: 50px;
+  text-align: center;
+  background: rgba(255,255,255,.08);
+  padding: 6px 12px;
+  border-radius: 6px;
+}
+
+.leader-category {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: rgba(255,255,255,.7);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-align: center;
+  padding: 8px 12px;
+  background: rgba(255,255,255,.05);
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+/* Drives Tab Styles */
+.drives-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.drive-item {
+  padding: 12px;
+  margin-bottom: 8px;
+  background: rgba(255,255,255,.04);
+  border-radius: 8px;
+  border-left: 3px solid rgba(255,255,255,.3);
+}
+
+.drive-header {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.drive-number {
+  color: rgba(255,255,255,.6);
+}
+
+.drive-team {
+  color: #fff;
+  background: rgba(255,255,255,.15);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+
+.drive-result {
+  margin-left: auto;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  background: rgba(255,255,255,.1);
+  color: rgba(255,255,255,.8);
+}
+
+.drive-info {
+  color: rgba(255,255,255,.7);
+  font-size: 0.85rem;
+  margin-bottom: 6px;
+}
+
+.scoring-play {
+  margin-top: 8px;
+  padding: 8px;
+  background: rgba(76, 175, 80, 0.15);
+  border-radius: 6px;
+  border-left: 3px solid #4caf50;
+}
+
+.scoring-play-desc {
+  color: rgba(255,255,255,.9);
+  font-size: 0.8rem;
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+
+.scoring-play-score {
+  color: #4caf50;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+/* Game Stats Tab Styles */
+.stats-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: rgba(255,255,255,.08);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.stats-row {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  gap: 12px;
+  padding: 10px 16px;
+  background: rgba(0,0,0,.2);
+  align-items: center;
+}
+
+.stats-header {
+  background: rgba(0,0,0,.35);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+}
+
+.stats-team {
+  color: #fff;
+  font-weight: 600;
+  text-align: center;
+}
+
+.stats-label {
+  color: rgba(255,255,255,.7);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.stats-value {
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+/* ==================== End Game Info Tabs ==================== */
+
+/* ==================== Win Probability Graph ==================== */
 .win-probability {
-  margin-top: 16px;
+  margin: 16px 0;
   padding: 16px;
   background: rgba(0,0,0,.2);
   border-radius: 12px;
@@ -360,116 +787,61 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: rgba(255,255,255,.7);
+  margin-bottom: 16px;
+  gap: 16px;
 }
 
 .win-prob-team {
   display: flex;
   align-items: center;
   gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(255,255,255,.85);
 }
 
 .win-prob-team img {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   object-fit: contain;
   filter: drop-shadow(0 1px 2px rgba(0,0,0,.3));
 }
 
 .win-prob-percentage {
-  font-size: 1.2rem;
-  color: rgba(255,255,255,.95);
+  font-size: 1.4rem;
   font-weight: 700;
+  color: #fff;
   font-variant-numeric: tabular-nums;
 }
 
 .win-prob-chart {
   position: relative;
   height: 120px;
-  background: linear-gradient(180deg, rgba(255,255,255,.05) 0%, transparent 50%, rgba(255,255,255,.05) 100%);
+  background: rgba(255,255,255,.02);
   border-radius: 8px;
-  border: 1px solid rgba(255,255,255,.15);
+  border: 1px solid rgba(255,255,255,.08);
   overflow: hidden;
 }
 
-/* 50% line in middle */
-.win-prob-chart::before {
-  content: '50%';
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  height: 2px;
-  background: rgba(255,255,255,.3);
-  z-index: 1;
-  font-size: 0.7rem;
-  color: rgba(255,255,255,.5);
-  padding-left: 4px;
-  line-height: 0;
-}
-
-/* Quarter markers on x-axis */
-.win-prob-quarters {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 6px;
-  padding: 0 4px;
-  font-size: 0.7rem;
-  color: rgba(255,255,255,.5);
-  font-weight: 600;
-}
-
-/* SVG path for the probability line */
-.win-prob-path {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+.win-prob-svg {
   width: 100%;
   height: 100%;
-  z-index: 2;
+  display: block;
 }
 
-.win-prob-line {
-  fill: none;
-  stroke: rgba(255,255,255,.95);
-  stroke-width: 2.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  vector-effect: non-scaling-stroke;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,.5));
+.win-prob-quarters {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 8px;
+  padding: 0 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255,255,255,.5);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-/* Area fill under/over the line */
-.win-prob-area-home {
-  fill: var(--home);
-  opacity: 0.35;
-}
-
-.win-prob-area-away {
-  fill: var(--away);
-  opacity: 0.35;
-}
-
-/* Current position marker */
-.win-prob-marker {
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  background: #fff;
-  border: 2px solid rgba(0,0,0,.4);
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 3;
-  box-shadow: 0 2px 6px rgba(0,0,0,.4);
-}
+/* ==================== End Win Probability Graph ==================== */
 
 /* --- Expanded details --- */
 .score-card .details {
