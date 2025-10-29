@@ -1,32 +1,70 @@
 .ros-card { 
   padding: 0; 
   overflow: hidden;
-  background: linear-gradient(125deg, 
-    rgba(44, 20, 72, 0.95),
-    rgba(15, 10, 29, 0.95)
+  background: linear-gradient(135deg, 
+    rgba(59, 130, 246, 0.1) 0%,
+    rgba(147, 51, 234, 0.1) 50%,
+    rgba(236, 72, 153, 0.1) 100%
   );
-  border-radius: 16px;
-  box-shadow: 0 3px 10px rgba(0,0,0,.15);
-  backdrop-filter: blur(6px);
-  border: 1px solid rgba(255,255,255,.1);
-  margin-bottom: 16px;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  margin-bottom: 24px;
+  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.ros-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, 
+    #3b82f6 0%, 
+    #8b5cf6 50%, 
+    #ec4899 100%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.ros-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 48px rgba(59, 130, 246, 0.2);
+}
+
+.ros-card:hover::before {
+  opacity: 1;
 }
 
 .ros-header {
   display: flex; 
   align-items: center; 
   justify-content: space-between;
-  padding: 16px 20px;
+  padding: 20px 24px;
   cursor: pointer;
-  border-bottom: 1px solid rgba(255,255,255,.15);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg,
+    rgba(30, 30, 50, 0.6) 0%,
+    rgba(20, 20, 40, 0.8) 100%
+  );
+  position: relative;
+  overflow: hidden;
 }
 
 .ros-title { 
-  font-weight: 700;
+  font-weight: 800;
   font-family: 'Rajdhani', sans-serif;
-  font-size: 1.3rem;
-  color: rgba(255,255,255,.95);
+  font-size: 1.4rem;
+  background: linear-gradient(135deg, #60a5fa, #a78bfa, #f472b6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   letter-spacing: 0.02em;
+  text-shadow: 0 0 20px rgba(96, 165, 250, 0.3);
 }
 
 .ros-body { 
@@ -84,6 +122,11 @@
   font-weight: 700;
   margin-left: 6px;
   backdrop-filter: blur(4px);
+}
+
+/* Hide mobile version on desktop */
+.injury-mobile {
+  display: none;
 }
 
 .injury-out,
@@ -352,3 +395,199 @@
   height: 22px;
 }
 
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  .ros-card {
+    margin-bottom: 12px;
+    border-radius: 12px;
+  }
+
+  .ros-header {
+    padding: 12px 16px;
+    flex-wrap: wrap;
+  }
+
+  .ros-title {
+    font-size: 1.1rem;
+  }
+
+  .ros-inner {
+    padding: 12px 16px;
+  }
+
+  .group-title {
+    font-size: 0.95rem;
+    margin: 12px 0 6px;
+  }
+
+  .player-row {
+    grid-template-columns: 48px 1fr auto auto auto;
+    gap: 10px;
+    padding: 10px;
+    align-items: center;
+  }
+
+  /* Position and image stacked in first column */
+  .cell:first-child {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .player-img-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    order: 2;
+  }
+
+  .player-thumbnail {
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+  }
+
+  /* Player info in second column */
+  .cell:nth-child(3) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  
+  /* Hide desktop injury badge, show mobile version */
+  .injury-desktop {
+    display: none;
+  }
+  
+  .injury-mobile {
+    display: inline-block;
+    font-size: 0.65rem;
+    padding: 1px 5px;
+    margin-left: 6px;
+  }
+
+  .pos {
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    min-width: 32px;
+    order: 1;
+  }
+
+  .name-link {
+    font-size: 0.9rem;
+  }
+
+  .pmeta {
+    font-size: 0.8rem;
+  }
+
+  .badge {
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    min-width: 32px;
+  }
+
+  /* Skeleton adjustments for mobile */
+  .skeleton-player-row {
+    grid-template-columns: 48px 1fr auto auto;
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .skeleton-ros-header {
+    flex-wrap: wrap;
+  }
+
+  .skeleton-pos {
+    width: 32px;
+    height: 20px;
+  }
+
+  .skeleton-img {
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+  }
+
+  .skeleton-badge {
+    width: 50px;
+    height: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .ros-header {
+    padding: 10px 12px;
+  }
+
+  .ros-title {
+    font-size: 1rem;
+  }
+
+  .ros-inner {
+    padding: 10px 12px;
+  }
+
+  .player-row {
+    grid-template-columns: 44px 1fr auto auto auto;
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .player-thumbnail {
+    width: 32px;
+    height: 32px;
+  }
+
+  .pos {
+    font-size: 0.65rem;
+    padding: 2px 6px;
+    min-width: 28px;
+  }
+
+  .name-link {
+    font-size: 0.85rem;
+  }
+
+  .pmeta {
+    font-size: 0.75rem;
+  }
+
+  .badge {
+    font-size: 0.65rem;
+    padding: 2px 6px;
+    min-width: 28px;
+  }
+  
+  .injury-mobile {
+    font-size: 0.6rem;
+    padding: 1px 4px;
+  }
+
+  .group-title {
+    font-size: 0.9rem;
+  }
+
+  /* Skeleton adjustments for small mobile */
+  .skeleton-player-row {
+    grid-template-columns: 44px 1fr auto auto;
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .skeleton-pos {
+    width: 28px;
+    height: 18px;
+  }
+
+  .skeleton-img {
+    width: 32px;
+    height: 32px;
+  }
+
+  .skeleton-badge {
+    width: 45px;
+    height: 18px;
+  }
+}

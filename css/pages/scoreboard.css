@@ -655,6 +655,72 @@
   white-space: nowrap;
 }
 
+/* Mobile responsive styles for Game Leaders */
+@media (max-width: 768px) {
+  .leader-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .leader-category {
+    order: -1;
+    font-size: 0.85rem;
+    padding: 10px 16px;
+  }
+  
+  .leader-player {
+    justify-content: space-between !important;
+    width: 100%;
+  }
+  
+  .leader-player.away,
+  .leader-player.home {
+    flex-direction: row;
+    justify-content: flex-start !important;
+  }
+  
+  .leader-player.home .leader-info {
+    align-items: flex-start;
+  }
+  
+  .leader-stat {
+    margin-left: auto;
+    font-size: 1.2rem;
+    min-width: 60px;
+  }
+  
+  .leader-headshot {
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+  }
+  
+  .leader-name {
+    font-size: 1rem;
+  }
+  
+  .leader-team {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .leader-headshot {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .leader-name {
+    font-size: 0.9rem;
+  }
+  
+  .leader-stat {
+    font-size: 1.1rem;
+    min-width: 50px;
+    padding: 4px 10px;
+  }
+}
+
 /* Drives Tab Styles */
 .drives-list {
   max-height: 400px;

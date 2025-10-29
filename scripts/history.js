@@ -1589,8 +1589,13 @@ export default async function loadHistory() {
 
     const accoladesCard = el('div', { class: 'history-card' });
     const accoladesHeaderEl = el('div', { class: 'history-header', role: 'button', tabindex: '0' });
+    const titleEl = el('div', { class: 'history-title' });
+    titleEl.append(
+      el('span', { class: 'title-icon', html: '🏅 ' }),
+      el('span', { class: 'title-text', html: 'Hall of Fame & Shame' })
+    );
     accoladesHeaderEl.append(
-      el('div', { class: 'history-title', html: '🏅 Hall of Fame & Shame' }),
+      titleEl,
       el('div', { class: 'champion-badge', html: '📊 Stats' })
     );
 

@@ -255,16 +255,25 @@ export default async function loadRosters() {
 
       const nameDiv = el('div', { html: nameHtml });
       
-      // Add injury status next to name if present
+      // Add injury status next to name if present (for desktop)
       if (p && p.injuryStatus) {
         const injuryBadge = el('span', { 
-          class: `injury-badge injury-${p.injuryStatus.toLowerCase()}`,
+          class: `injury-badge injury-desktop injury-${p.injuryStatus.toLowerCase()}`,
           html: p.injuryStatus.toUpperCase()
         });
         nameDiv.append(document.createTextNode(' '), injuryBadge);
       }
       
       const metaDiv = el('div', { class:'pmeta', html: p ? (p.team || '') : '' });
+      
+      // Add injury badge to meta div (for mobile)
+      if (p && p.injuryStatus) {
+        const injuryBadgeMobile = el('span', { 
+          class: `injury-badge injury-mobile injury-${p.injuryStatus.toLowerCase()}`,
+          html: p.injuryStatus.toUpperCase()
+        });
+        metaDiv.append(document.createTextNode(' '), injuryBadgeMobile);
+      }
       
       row.append(el('div', {}, nameDiv, metaDiv));
 

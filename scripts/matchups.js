@@ -42,6 +42,7 @@ function createExpandedMatchupSkeleton() {
     for (let i = 0; i < 9; i++) {
       const row = el('div', { class: 'skeleton-player-row' },
         el('div', {}, el('div', { class: 'skeleton skeleton-pos' })),
+        el('div', {}, el('div', { class: 'skeleton skeleton-img' })),
         el('div', { class: 'skeleton-player-info' },
           el('div', { class: 'skeleton skeleton-name' }),
           el('div', { class: 'skeleton skeleton-team' })
@@ -56,6 +57,7 @@ function createExpandedMatchupSkeleton() {
     for (let i = 0; i < 6; i++) {
       const row = el('div', { class: 'skeleton-player-row' },
         el('div', {}, el('div', { class: 'skeleton skeleton-pos' })),
+        el('div', {}, el('div', { class: 'skeleton skeleton-img' })),
         el('div', { class: 'skeleton-player-info' },
           el('div', { class: 'skeleton skeleton-name' }),
           el('div', { class: 'skeleton skeleton-team' })
@@ -75,7 +77,9 @@ function createExpandedMatchupSkeleton() {
 
 /* ----------------------- Main Load Function ----------------------- */
 
-export default async function loadMatchups() {
+let currentWeek = null;
+
+async function loadMatchupsForWeek(week) {
   const root = document.getElementById('matchups-root');
   
   // Show skeleton loaders immediately
@@ -83,8 +87,7 @@ export default async function loadMatchups() {
   root.appendChild(createMatchupSkeletons(6));
   
   try {
-    const [week, { ownerByRoster }, players] = await Promise.all([
-      getCurrentWeek(),
+    const [{ ownerByRoster }, players] = await Promise.all([
       getLeagueBundle(),
       getPlayersMap()
     ]);
@@ -110,7 +113,7 @@ export default async function loadMatchups() {
 
       const left = el('div', { class: 'match-left' });
       left.append(
-        el('div', { class: 'match-title', html: `Week ${week} · ${nameA} <span style="opacity:.6">vs</span> ${nameB}` }),
+        el('div', { class: 'match-title', html: `Week ${week} · ${nameA} vs ${nameB}` }),
         el('div', { class: 'match-avg',   html: `Avg: ${isFinite(aAvg) ? aAvg.toFixed(1) : '—'} — ${isFinite(bAvg) ? bAvg.toFixed(1) : '—'}` })
       );
 
@@ -212,12 +215,35 @@ function playerRow(pid, pts, players) {
   // treat only true empty slots as empty (pid missing/zero), not missing first names
   const hasPlayer = pid && pid !== '0' && pid !== 0;
   const row = el('div', { class: 'player-row' });
+  
   // Position pill (blank oval if unknown)
   if (posKey) {
     row.append(el('div', {}, el('span', { class: `pos ${posClass}`, html: posKey })));
   } else {
     row.append(el('div', {}, el('span', { class: 'pos empty', html: '&nbsp;' })));
   }
+  
+  // Player image or team logo for defenses
+  if (hasPlayer) {
+    let imgUrl;
+    if (p.pos === 'DEF' || p.pos === 'DST') {
+      // Use team logo for defenses
+      imgUrl = `https://sleepercdn.com/images/team_logos/nfl/${(p.team || '').toLowerCase()}.png`;
+    } else {
+      // Use player headshot for regular players
+      imgUrl = `https://sleepercdn.com/content/nfl/players/thumb/${pid}.jpg`;
+    }
+    const img = el('img', { 
+      class: 'player-thumbnail',
+      src: imgUrl,
+      alt: p.fn || p.name || 'Player',
+      onerror: "this.style.display='none'"
+    });
+    row.append(el('div', { class: 'player-img-cell' }, img));
+  } else {
+    row.append(el('div', { class: 'player-img-cell' }));
+  }
+  
   // Name + meta
   const name = hasPlayer
     // fallbacks cover DST/team defenses which often lack p.fn
@@ -245,4 +271,119 @@ function playerRow(pid, pts, players) {
   // Points (keep 0.00 even for empty)
   row.append(el('div', { class: 'pts', html: Number(pts).toFixed(2) }));
   return row;
+}
+
+/* ----------------------- Week Selector ----------------------- */
+
+export default async function loadMatchups() {
+  const weekSelectorContainer = document.getElementById('matchups-week-selector');
+  
+  // Get current week
+  currentWeek = await getCurrentWeek();
+  
+  // Initialize week selector
+  if (weekSelectorContainer) {
+    const handleWeekChange = (newWeek) => {
+      currentWeek = newWeek;
+      
+      // Update display
+      const weekDisplay = document.getElementById('matchups-current-week');
+      if (weekDisplay) weekDisplay.textContent = newWeek;
+      
+      // Update button states
+      const prevBtn = document.getElementById('matchups-prev-week');
+      const nextBtn = document.getElementById('matchups-next-week');
+      if (prevBtn) prevBtn.disabled = newWeek <= 1;
+      if (nextBtn) nextBtn.disabled = newWeek >= 18;
+      
+      // Reload matchups
+      loadMatchupsForWeek(newWeek);
+    };
+    
+    // Create week selector with navigation
+    const prevBtn = el('button', { 
+      class: 'week-nav-btn prev', 
+      id: 'matchups-prev-week',
+      disabled: currentWeek <= 1 
+    }, '◄');
+    
+    const nextBtn = el('button', { 
+      class: 'week-nav-btn next', 
+      id: 'matchups-next-week',
+      disabled: currentWeek >= 18 
+    }, '►');
+    
+    const weekNumberDisplay = el('span', { class: 'week-number', id: 'matchups-current-week' }, currentWeek);
+    const weekNumberInput = el('input', { 
+      type: 'number', 
+      class: 'week-number-input', 
+      id: 'matchups-week-input',
+      min: '1',
+      max: '18',
+      value: currentWeek
+    });
+    
+    const weekSelector = el('div', { class: 'week-selector' },
+      el('div', { class: 'week-nav' },
+        prevBtn,
+        el('div', { class: 'week-display' },
+          el('span', { class: 'week-label' }, 'WEEK'),
+          weekNumberDisplay,
+          weekNumberInput
+        ),
+        nextBtn
+      )
+    );
+    
+    weekSelectorContainer.innerHTML = '';
+    weekSelectorContainer.appendChild(weekSelector);
+    
+    // Toggle between display and input on click
+    weekNumberDisplay.addEventListener('click', (e) => {
+      e.stopPropagation();
+      weekNumberDisplay.style.display = 'none';
+      weekNumberInput.style.display = 'block';
+      weekNumberInput.focus();
+      weekNumberInput.select();
+    });
+    
+    // Handle input submission
+    const submitWeekInput = () => {
+      const inputWeek = parseInt(weekNumberInput.value);
+      if (inputWeek >= 1 && inputWeek <= 18) {
+        weekNumberDisplay.style.display = 'block';
+        weekNumberInput.style.display = 'none';
+        handleWeekChange(inputWeek);
+      } else {
+        // Reset to current week if invalid
+        weekNumberInput.value = currentWeek;
+        weekNumberDisplay.style.display = 'block';
+        weekNumberInput.style.display = 'none';
+      }
+    };
+    
+    weekNumberInput.addEventListener('blur', submitWeekInput);
+    weekNumberInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        submitWeekInput();
+      } else if (e.key === 'Escape') {
+        weekNumberInput.value = currentWeek;
+        weekNumberDisplay.style.display = 'block';
+        weekNumberInput.style.display = 'none';
+      }
+    });
+    
+    // Arrow button handlers
+    prevBtn.addEventListener('click', () => {
+      if (currentWeek > 1) handleWeekChange(currentWeek - 1);
+    });
+    
+    nextBtn.addEventListener('click', () => {
+      if (currentWeek < 18) handleWeekChange(currentWeek + 1);
+    });
+  }
+  
+  // Load initial matchups
+  await loadMatchupsForWeek(currentWeek);
 }
