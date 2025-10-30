@@ -285,15 +285,15 @@ function createFootballField(comp, homeColor, awayColor, gameState, summaryData)
   // Add yard line markers (numbers at each 10-yard line)
   // Positions correspond to yard lines: 10, 20, 30, 40, 50, 40, 30, 20, 10
   const yardMarkers = [
-    { position: 18, label: '10' },   // Home 10
-    { position: 26, label: '20' },   // Home 20
-    { position: 34, label: '30' },   // Home 30
-    { position: 42, label: '40' },   // Home 40
+    { position: 18, label: '< 10' },   // Home 10
+    { position: 26, label: '< 20' },   // Home 20
+    { position: 34, label: '< 30' },   // Home 30
+    { position: 42, label: '< 40' },   // Home 40
     { position: 50, label: '50' },   // 50 yard line
-    { position: 58, label: '40' },   // Away 40
-    { position: 66, label: '30' },   // Away 30
-    { position: 74, label: '20' },   // Away 20
-    { position: 82, label: '10' },   // Away 10
+    { position: 58, label: '40 >' },   // Away 40
+    { position: 66, label: '30 >' },   // Away 30
+    { position: 74, label: '20 >' },   // Away 20
+    { position: 82, label: '10 >' },   // Away 10
   ];
   
   yardMarkers.forEach(({ position, label }) => {
