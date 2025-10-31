@@ -295,15 +295,15 @@ function createFootballField(comp, homeColor, awayColor, gameState, summaryData)
   // Add yard line markers (numbers at each 10-yard line)
   // Positions correspond to yard lines: 10, 20, 30, 40, 50, 40, 30, 20, 10
   const yardMarkers = [
-    { position: 18, label: '10' },   // Home 10
-    { position: 26, label: '20' },   // Home 20
-    { position: 34, label: '30' },   // Home 30
-    { position: 42, label: '40' },   // Home 40
+    { position: 18, label: '< 10' },   // Home 10
+    { position: 26, label: '< 20' },   // Home 20
+    { position: 34, label: '< 30' },   // Home 30
+    { position: 42, label: '< 40' },   // Home 40
     { position: 50, label: '50' },   // 50 yard line
-    { position: 58, label: '40' },   // Away 40
-    { position: 66, label: '30' },   // Away 30
-    { position: 74, label: '20' },   // Away 20
-    { position: 82, label: '10' },   // Away 10
+    { position: 58, label: '40 >' },   // Away 40
+    { position: 66, label: '30 >' },   // Away 30
+    { position: 74, label: '20 >' },   // Away 20
+    { position: 82, label: '10 >' },   // Away 10
   ];
   
   yardMarkers.forEach(({ position, label }) => {
@@ -320,33 +320,36 @@ function createFootballField(comp, homeColor, awayColor, gameState, summaryData)
     el('span', {}, awayAbbr || 'AWAY')
   );
   
+  // Helper function to parse yard line and convert to field position percentage
+  const parseYardLine = (yardLineText) => {
+    const yardMatch = yardLineText.match(/\b([A-Z]{2,3})\s+(\d{1,2})\b/);
+    if (!yardMatch) return null;
+    
+    const [, yardTeam, yardNum] = yardMatch;
+    const yardLine = parseInt(yardNum, 10);
+    const isHomeTerritory = yardTeam === homeAbbr;
+    
+    // Calculate ball position on the actual 100-yard field (0-100)
+    let fieldPosition;
+    if (isHomeTerritory) {
+      fieldPosition = yardLine; // Home 25 = position 25
+    } else {
+      fieldPosition = 100 - yardLine; // Away 25 = position 75
+    }
+    
+    // Convert to percentage accounting for 10% endzones on each side
+    return 10 + (fieldPosition * 0.8); // Map 0-100 yards to 10%-90% of container
+  };
+  
   // If game is live, add ball position and drive progress
   if (state === 'in' && sit) {
     const possAbbr = sit?.possession;
     
-    // Parse yard line (e.g., "MIA 35", "ATL 50")
+    // Parse current yard line (e.g., "MIA 35", "ATL 50")
     const yardLineText = sit?.yardLineText || sit?.yardLine?.text || '';
-    const yardMatch = yardLineText.match(/\b([A-Z]{2,3})\s+(\d{1,2})\b/);
+    const ballPosition = parseYardLine(yardLineText);
     
-    if (yardMatch) {
-      const [, yardTeam, yardNum] = yardMatch;
-      const yardLine = parseInt(yardNum, 10);
-      
-      // Determine which team's territory (home is left, away is right)
-      const isHomeTerritory = yardTeam === homeAbbr;
-      
-      // Calculate ball position on the actual 100-yard field (0-100)
-      let fieldPosition;
-      if (isHomeTerritory) {
-        fieldPosition = yardLine; // Home 25 = position 25
-      } else {
-        fieldPosition = 100 - yardLine; // Away 25 = position 75
-      }
-      
-      // Convert to percentage accounting for 10% endzones on each side
-      // The playable field is 80% of the container (10% left endzone + 80% field + 10% right endzone)
-      const ballPosition = 10 + (fieldPosition * 0.8); // Map 0-100 yards to 10%-90% of container
-      
+    if (ballPosition !== null) {
       // Determine possession and drive color
       let driveColor = homeColor;
       const isPossHome = possAbbr === homeAbbr;
@@ -358,41 +361,46 @@ function createFootballField(comp, homeColor, awayColor, gameState, summaryData)
       
       field.style.setProperty('--drive-color', driveColor);
       
-      // Add drive progress bar
-      let driveProgressEl = null;
+      // Get drive start position from current drive data
+      let driveStartPosition = null;
+      const currentDrive = summaryData?.drives?.current;
       
-      if (isPossHome) {
-        // Home driving towards away (left to right) - from home endzone (10%) to ball
-        const driveWidth = ballPosition - 10;
-        driveProgressEl = el('div', {
-          class: 'drive-progress',
-          style: `left: 10%; width: ${driveWidth}%;`
-        });
-      } else if (isPossAway) {
-        // Away driving towards home (right to left) - from away endzone (90%) to ball
-        const driveWidth = 90 - ballPosition;
-        driveProgressEl = el('div', {
-          class: 'drive-progress',
-          style: `right: 10%; width: ${driveWidth}%;`
-        });
+      if (currentDrive && currentDrive.start) {
+        const startYardLine = currentDrive.start.yardLine;
+        const startText = currentDrive.start.text || '';
+        
+        // Try to parse start position
+        if (startText) {
+          driveStartPosition = parseYardLine(startText);
+        } else if (typeof startYardLine === 'number') {
+          // If we have a numeric yard line (0-100), convert it
+          driveStartPosition = 10 + (startYardLine * 0.8);
+        }
       }
       
-      // Add ball marker
+      // If no drive start, default to team's own goal line
+      if (driveStartPosition === null) {
+        driveStartPosition = isPossHome ? 10 : 90; // Start at own endzone
+      }
+      
+      // Add drive progress line from start to current position
+      const driveLineEl = el('div', {
+        class: 'drive-line',
+        style: `
+          left: ${Math.min(driveStartPosition, ballPosition)}%;
+          width: ${Math.abs(ballPosition - driveStartPosition)}%;
+          background: ${driveColor};
+        `
+      });
+      
+      fieldContainer.appendChild(driveLineEl);
+      
+      // Add ball marker with football icon
       const ballMarker = el('div', {
         class: 'ball-marker',
         style: `left: ${ballPosition}%;`
-      });
+      }, '🏈');
       
-      // Add possession indicator with arrow
-      const arrowSymbol = isPossHome ? '→' : isPossAway ? '←' : '';
-      const possessionLabel = el('div', {
-        class: 'possession-team',
-        style: `left: ${ballPosition}%;`
-      }, `${arrowSymbol} ${possAbbr || ''} ${arrowSymbol}`);
-      
-      ballMarker.appendChild(possessionLabel);
-      
-      if (driveProgressEl) fieldContainer.appendChild(driveProgressEl);
       fieldContainer.appendChild(ballMarker);
       
       // Debug: Confirm ball marker was added
@@ -554,42 +562,74 @@ function gameCard(evt) {
   const statusLine = live ? fmtLive(stat) : post ? fmtPost(stat) : fmtPre(evt);
   const bNames = comp?.broadcasts?.flatMap((b) => b?.names || [])?.filter(Boolean) || [];
 
-  const sit = comp?.situation;
-  const possAbbr = sit?.possession;
-  const awayHasBall = live && possAbbr && away?.team?.abbreviation === possAbbr;
-  const homeHasBall = live && possAbbr && home?.team?.abbreviation === possAbbr;
-
   const eventId = evt?.id || comp?.id;
 
+  // Create initial card structure - we'll update possession after fetching summary
+  const scoreGrid = el('div', { class: 'score-grid' });
+  
   const card = el('article',
     { 
       class: `score-card ${live ? 'live' : post ? 'final' : 'pre'}`, 
       style: `--home:${homeC};--away:${awayC}`,
       'data-event-id': eventId
     },
-    el('div', { class: 'score-grid' },
-      teamBlock(away, { side: 'away', hasBall: awayHasBall, isHome: false }),
-      el('div', { class: 'center-col' },
-        live ? badge('LIVE', 'live') : post ? badge('FINAL', 'final') : badge('UPCOMING', 'pre'),
-        el('div', { class: 'status' }, statusLine),
-        sit?.downDistanceText ? el('div', { class: 'chips one' }, el('span', { class: 'chip' }, sit.downDistanceText)) : null,
-        bNames.length ? el('div', { class: 'chips tv-inside' }, ...bNames.map((n) => el('span', { class: 'chip' }, n))) : null
-      ),
-      teamBlock(home, { side: 'home', hasBall: homeHasBall, isHome: true })
-    )
+    scoreGrid
     // Note: Drive info pill will be added after fetching summary data
   );
 
   // Store summary data cache on the card
   let summaryDataCache = null;
   
-  // For live games, fetch summary data immediately to show drive info
+  // Function to update the score grid with possession info
+  const updateScoreGrid = (possessionTeam = null) => {
+    const awayHasBall = live && possessionTeam && away?.team?.abbreviation === possessionTeam;
+    const homeHasBall = live && possessionTeam && home?.team?.abbreviation === possessionTeam;
+    
+    const sit = comp?.situation;
+    const bNames = comp?.broadcasts?.flatMap((b) => b?.names || [])?.filter(Boolean) || [];
+    const statusLine = live ? fmtLive(stat) : post ? fmtPost(stat) : fmtPre(evt);
+    
+    scoreGrid.innerHTML = '';
+    scoreGrid.appendChild(teamBlock(away, { side: 'away', hasBall: awayHasBall, isHome: false }));
+    scoreGrid.appendChild(
+      el('div', { class: 'center-col' },
+        live ? badge('LIVE', 'live') : post ? badge('FINAL', 'final') : badge('UPCOMING', 'pre'),
+        el('div', { class: 'status' }, statusLine),
+        sit?.downDistanceText ? el('div', { class: 'chips one' }, el('span', { class: 'chip' }, sit.downDistanceText)) : null,
+        bNames.length ? el('div', { class: 'chips tv-inside' }, ...bNames.map((n) => el('span', { class: 'chip' }, n))) : null
+      )
+    );
+    scoreGrid.appendChild(teamBlock(home, { side: 'home', hasBall: homeHasBall, isHome: true }));
+  };
+  
+  // Initial render without possession
+  updateScoreGrid();
+  
+  // For live games, fetch summary data immediately to show drive info and possession
   if (live) {
     (async () => {
       try {
         const res = await fetch(ESPN_SUMMARY(eventId));
         if (res.ok) {
           summaryDataCache = await res.json();
+          
+          // Get possession from most recent play
+          const drives = summaryDataCache?.drives;
+          let possessionTeam = null;
+          
+          if (drives?.current) {
+            // If there's a current drive, that team has possession
+            possessionTeam = drives.current.team?.abbreviation;
+          } else if (drives?.previous && drives.previous.length > 0) {
+            // Fall back to most recent completed drive's team
+            const lastDrive = drives.previous[drives.previous.length - 1];
+            possessionTeam = lastDrive.team?.abbreviation;
+          }
+          
+          // Update score grid with possession info
+          if (possessionTeam) {
+            updateScoreGrid(possessionTeam);
+          }
           
           // Add drive info pill if it doesn't exist
           if (!card.querySelector('.drive-info-pill')) {
@@ -887,10 +927,14 @@ async function buildDetails(evt, summaryDataCache = null) {
 function renderGameInfoTabs(summaryData, homeAbbr, awayAbbr) {
   const container = el('div', { class: 'game-info-tabs' });
   
-  // Tab buttons
+  // Check if game has started (has drives data)
+  const hasDrives = summaryData?.drives?.previous?.length > 0 || summaryData?.drives?.current;
+  
+  // Tab buttons - include Plays tab if game has started
   const tabButtons = el('div', { class: 'tab-buttons' },
     el('button', { class: 'tab-btn active', 'data-tab': 'venue' }, 'Venue Stats'),
     el('button', { class: 'tab-btn', 'data-tab': 'leaders' }, 'Game Leaders'),
+    hasDrives ? el('button', { class: 'tab-btn', 'data-tab': 'plays' }, 'Plays') : null,
     el('button', { class: 'tab-btn', 'data-tab': 'drives' }, 'Drives'),
     el('button', { class: 'tab-btn', 'data-tab': 'stats' }, 'Game Stats')
   );
@@ -908,6 +952,11 @@ function renderGameInfoTabs(summaryData, homeAbbr, awayAbbr) {
   leadersTab.classList.add('tab-pane');
   leadersTab.setAttribute('data-tab-content', 'leaders');
   
+  // Plays Tab (new - shows all plays)
+  const playsTab = renderPlaysTab(summaryData);
+  playsTab.classList.add('tab-pane');
+  playsTab.setAttribute('data-tab-content', 'plays');
+  
   // Drives Tab
   const drivesTab = renderDrivesTab(summaryData);
   drivesTab.classList.add('tab-pane');
@@ -920,6 +969,9 @@ function renderGameInfoTabs(summaryData, homeAbbr, awayAbbr) {
   
   tabContent.appendChild(venueTab);
   tabContent.appendChild(leadersTab);
+  if (hasDrives) {
+    tabContent.appendChild(playsTab);
+  }
   tabContent.appendChild(drivesTab);
   tabContent.appendChild(statsTab);
   
@@ -1137,27 +1189,139 @@ function renderGameLeadersTab(summaryData) {
   return leadersContainer;
 }
 
-function renderDrivesTab(summaryData) {
-  const drives = summaryData?.drives?.previous || [];
+function renderPlaysTab(summaryData) {
+  const drives = summaryData?.drives;
+  if (!drives) {
+    return el('div', { class: 'info-row' }, 'No play data available');
+  }
   
-  if (drives.length === 0) {
+  // Collect all plays from all drives (previous and current)
+  const allPlays = [];
+  
+  // Add plays from previous drives
+  const previousDrives = drives.previous || [];
+  previousDrives.forEach((drive, driveIndex) => {
+    const plays = drive.plays || [];
+    plays.forEach(play => {
+      allPlays.push({
+        ...play,
+        driveNumber: driveIndex + 1,
+        teamAbbr: drive.team?.abbreviation || 'Team',
+        teamColor: drive.team?.color || '#333',
+        isCurrentDrive: false
+      });
+    });
+  });
+  
+  // Add plays from current drive (if exists)
+  if (drives.current && drives.current.plays) {
+    const currentPlays = drives.current.plays;
+    const currentDriveNumber = previousDrives.length + 1;
+    currentPlays.forEach(play => {
+      allPlays.push({
+        ...play,
+        driveNumber: currentDriveNumber,
+        teamAbbr: drives.current.team?.abbreviation || 'Team',
+        teamColor: drives.current.team?.color || '#333',
+        isCurrentDrive: true
+      });
+    });
+  }
+  
+  // Sort plays in reverse chronological order (most recent first)
+  allPlays.sort((a, b) => {
+    // First by drive number (descending)
+    if (a.driveNumber !== b.driveNumber) {
+      return b.driveNumber - a.driveNumber;
+    }
+    // Then by sequence number within drive (descending)
+    return (b.sequenceNumber || 0) - (a.sequenceNumber || 0);
+  });
+  
+  if (allPlays.length === 0) {
+    return el('div', { class: 'info-row' }, 'No plays yet');
+  }
+  
+  // Render plays
+  const playsContainer = el('div', { class: 'plays-list' });
+  
+  allPlays.forEach((play, index) => {
+    const isScoringPlay = play.scoringPlay || false;
+    const period = play.period?.number || 1;
+    const clock = play.clock?.displayValue || '';
+    const downDistance = play.start?.shortDownDistanceText || play.start?.downDistanceText || '';
+    const yardLine = play.start?.yardLine || '';
+    const playText = play.text || 'Play description unavailable';
+    const awayScore = play.awayScore || 0;
+    const homeScore = play.homeScore || 0;
+    
+    // Create play card
+    const playCard = el('div', { 
+      class: `play-item ${isScoringPlay ? 'scoring' : ''} ${play.isCurrentDrive ? 'current-drive' : ''}`,
+      style: `--team-color: ${play.teamColor}`
+    },
+      el('div', { class: 'play-header' },
+        el('div', { class: 'play-meta' },
+          el('span', { class: 'play-team' }, play.teamAbbr),
+          el('span', { class: 'play-time' }, `Q${period} ${clock}`),
+          play.isCurrentDrive ? el('span', { class: 'current-badge' }, 'LIVE') : null
+        ),
+        el('div', { class: 'play-situation' },
+          downDistance ? el('span', { class: 'down-distance' }, downDistance) : null,
+          yardLine ? el('span', { class: 'yard-line' }, `at ${yardLine}`) : null
+        )
+      ),
+      el('div', { class: 'play-description' }, playText),
+      isScoringPlay ? el('div', { class: 'play-score' }, 
+        `Score: ${awayScore}-${homeScore}`
+      ) : null
+    );
+    
+    playsContainer.appendChild(playCard);
+  });
+  
+  return playsContainer;
+}
+
+function renderDrivesTab(summaryData) {
+  const drives = summaryData?.drives;
+  const previousDrives = drives?.previous || [];
+  const currentDrive = drives?.current;
+  
+  // Check if we have any drives at all
+  if (previousDrives.length === 0 && !currentDrive) {
     return el('div', { class: 'info-row' }, 'No drive data available');
   }
   
-  const driveElements = drives.map((drive, index) => {
+  const allDrives = [...previousDrives];
+  
+  // Add current drive if it exists
+  if (currentDrive) {
+    allDrives.push({
+      ...currentDrive,
+      isCurrent: true,
+      result: 'In Progress'
+    });
+  }
+  
+  const driveElements = allDrives.map((drive, index) => {
     const team = drive.team?.abbreviation || 'Team';
     const description = drive.description || '';
     const result = drive.result || '';
+    const isCurrent = drive.isCurrent || false;
     
     const driveHeader = el('div', { class: 'drive-header' },
       el('span', { class: 'drive-number' }, `Drive ${index + 1}`),
       el('span', { class: 'drive-team' }, team),
-      el('span', { class: 'drive-result' }, result)
+      el('span', { class: 'drive-result' }, result),
+      isCurrent ? el('span', { class: 'current-badge' }, 'LIVE') : null
     );
     
     const driveInfo = el('div', { class: 'drive-info' }, description);
     
-    const driveContainer = el('div', { class: 'drive-item' }, driveHeader, driveInfo);
+    const driveContainer = el('div', { 
+      class: `drive-item ${isCurrent ? 'current-drive' : ''}` 
+    }, driveHeader, driveInfo);
     
     // Check if this drive had scoring plays
     const plays = drive.plays || [];

@@ -409,29 +409,37 @@
   transition: all 0.3s ease;
 }
 
+/* Drive line showing progress from start to current position */
+.drive-line {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 3px;
+  background: var(--drive-color);
+  z-index: 2;
+  box-shadow: 0 0 6px var(--drive-color);
+  transition: all 0.3s ease;
+  opacity: 0.8;
+}
+
 /* Ball position marker */
 .ball-marker {
   position: absolute;
   top: 50%;
   transform: translate(-50%, -50%);
-  width: 20px;
-  height: 20px;
-  background: #8b4513;
-  border-radius: 50%;
-  border: 2px solid #fff;
-  box-shadow: 0 2px 6px rgba(0,0,0,.4), inset 0 1px 2px rgba(255,255,255,.3);
   z-index: 3;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 8px;
-  color: #fff;
-  font-weight: bold;
+  font-size: 20px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,.5));
+  animation: pulse-ball 2s ease-in-out infinite;
 }
 
-.ball-marker::after {
-  content: '🏈';
-  font-size: 12px;
+@keyframes pulse-ball {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.1);
+  }
 }
 
 /* Possession indicator */
@@ -722,6 +730,146 @@
   }
 }
 
+/* Plays Tab Styles */
+.plays-list {
+  max-height: 500px;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.play-item {
+  padding: 14px;
+  margin-bottom: 10px;
+  background: rgba(255,255,255,.04);
+  border-radius: 10px;
+  border-left: 4px solid var(--team-color, rgba(255,255,255,.3));
+  transition: all 0.2s ease;
+}
+
+.play-item:hover {
+  background: rgba(255,255,255,.06);
+  transform: translateX(4px);
+}
+
+.play-item.scoring {
+  background: rgba(76, 175, 80, 0.12);
+  border-left-color: #4caf50;
+  box-shadow: 0 0 0 1px rgba(76, 175, 80, 0.2);
+}
+
+.play-item.scoring:hover {
+  background: rgba(76, 175, 80, 0.18);
+}
+
+.play-item.current-drive {
+  background: rgba(59, 130, 246, 0.12);
+  border-left-color: #3b82f6;
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.2);
+  animation: pulse-play 2s ease-in-out infinite;
+}
+
+@keyframes pulse-play {
+  0%, 100% {
+    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+  }
+}
+
+.play-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.play-meta {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.play-team {
+  color: #fff;
+  background: rgba(255,255,255,.15);
+  padding: 3px 10px;
+  border-radius: 5px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.play-time {
+  color: rgba(255,255,255,.6);
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+}
+
+.current-badge {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  color: #fff;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  animation: pulse-badge 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-badge {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.play-situation {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 0.75rem;
+  color: rgba(255,255,255,.5);
+}
+
+.down-distance {
+  font-weight: 600;
+  color: rgba(255,255,255,.7);
+}
+
+.yard-line {
+  color: rgba(255,255,255,.5);
+}
+
+.play-description {
+  color: rgba(255,255,255,.85);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+.play-item.scoring .play-description {
+  color: #fff;
+  font-weight: 500;
+}
+
+.play-score {
+  color: #4caf50;
+  font-weight: 700;
+  font-size: 0.85rem;
+  margin-top: 6px;
+  padding: 4px 8px;
+  background: rgba(76, 175, 80, 0.15);
+  border-radius: 4px;
+  display: inline-block;
+}
+
 /* Drives Tab Styles */
 .drives-list {
   max-height: 400px;
@@ -734,6 +882,13 @@
   background: rgba(255,255,255,.04);
   border-radius: 8px;
   border-left: 3px solid rgba(255,255,255,.3);
+  transition: all 0.2s ease;
+}
+
+.drive-item.current-drive {
+  background: rgba(59, 130, 246, 0.12);
+  border-left-color: #3b82f6;
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.2);
 }
 
 .drive-header {
@@ -743,6 +898,7 @@
   margin-bottom: 6px;
   font-size: 0.85rem;
   font-weight: 600;
+  flex-wrap: wrap;
 }
 
 .drive-number {
@@ -764,6 +920,16 @@
   font-size: 0.75rem;
   background: rgba(255,255,255,.1);
   color: rgba(255,255,255,.8);
+}
+
+.drive-header .current-badge {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  color: #fff;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
 }
 
 .drive-info {
