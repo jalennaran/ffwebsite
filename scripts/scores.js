@@ -259,6 +259,16 @@ function createFootballField(comp, homeColor, awayColor, gameState, summaryData)
   const stat = comp?.status;
   const state = gameState || stat?.type?.state;
   
+  // Debug logging for troubleshooting
+  if (state === 'in' && !sit) {
+    console.warn('Football field: Live game but no situation data available', {
+      homeAbbr,
+      awayAbbr,
+      hasSummaryData: !!summaryData,
+      situationKeys: summaryData ? Object.keys(summaryData) : []
+    });
+  }
+  
   // Show field for pre-game and live games, but not for final games
   if (state === 'post') return null;
   
@@ -384,6 +394,14 @@ function createFootballField(comp, homeColor, awayColor, gameState, summaryData)
       
       if (driveProgressEl) fieldContainer.appendChild(driveProgressEl);
       fieldContainer.appendChild(ballMarker);
+      
+      // Debug: Confirm ball marker was added
+      console.log('✅ Football field: Ball marker added', {
+        team: possAbbr,
+        yardLine: yardLineText,
+        position: `${ballPosition.toFixed(1)}%`,
+        direction: isPossHome ? 'home→away' : 'away→home'
+      });
       
       // Add field info
       const fieldInfo = el('div', { class: 'field-info' });
@@ -594,7 +612,7 @@ function gameCard(evt) {
     if (e.target.closest('a, button, .game-info-tabs, .win-probability, .details-grid')) return;
     const open = card.classList.toggle('expanded');
     
-    // Fetch summary data if not cached yet
+    // Fetch summary data if not cached yet - MUST await before creating field
     if (open && !summaryDataCache) {
       try {
         const res = await fetch(ESPN_SUMMARY(eventId));
@@ -606,10 +624,11 @@ function gameCard(evt) {
       }
     }
     
-    // Handle football field
+    // Handle football field - now summaryDataCache will be populated
     let field = card.querySelector('.football-field');
     
     if (open && !field) {
+      // Create field with fully loaded summary data
       field = createFootballField(comp, homeC, awayC, state, summaryDataCache);
       
       // Insert field first
