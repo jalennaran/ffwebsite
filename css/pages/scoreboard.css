@@ -409,17 +409,25 @@
   transition: all 0.3s ease;
 }
 
-/* Drive line showing progress from start to current position */
+/* Drive line showing progress from start to current position - full drive visualization */
 .drive-line {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  height: 3px;
-  background: var(--drive-color);
+  height: 6px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    var(--drive-color) 10%, 
+    var(--drive-color) 90%, 
+    transparent 100%
+  );
   z-index: 2;
-  box-shadow: 0 0 6px var(--drive-color);
+  box-shadow: 
+    0 0 10px var(--drive-color),
+    0 2px 6px rgba(0,0,0,.4);
   transition: all 0.3s ease;
-  opacity: 0.8;
+  opacity: 0.9;
+  border-radius: 3px;
 }
 
 /* Ball position marker */
@@ -468,18 +476,27 @@
   font-weight: 600;
 }
 
-/* Yard line markers (numbers on field) */
+/* Yard line markers (numbers on field) - top and bottom like real NFL field */
 .yard-marker {
   position: absolute;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 0.65rem;
-  font-weight: 700;
-  color: rgba(255,255,255,.35);
-  text-shadow: 0 1px 2px rgba(0,0,0,.5);
+  transform: translateX(-50%);
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: rgba(255,255,255,.5);
+  text-shadow: 0 1px 3px rgba(0,0,0,.7);
   pointer-events: none;
   z-index: 1;
   user-select: none;
+  font-family: 'Rajdhani', sans-serif;
+  letter-spacing: 0.5px;
+}
+
+.yard-marker.top {
+  top: 2px;
+}
+
+.yard-marker.bottom {
+  bottom: 2px;
 }
 
 /* Down and distance info */
@@ -1063,8 +1080,7 @@
 }
 
 .win-prob-quarters {
-  display: flex;
-  justify-content: space-around;
+  position: relative;
   margin-top: 8px;
   padding: 0 8px;
   font-size: 0.75rem;
@@ -1072,6 +1088,12 @@
   color: rgba(255,255,255,.5);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  height: 20px;
+}
+
+.win-prob-quarters span {
+  position: absolute;
+  transform: translateX(-50%);
 }
 
 /* ==================== End Win Probability Graph ==================== */

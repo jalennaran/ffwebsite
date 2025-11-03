@@ -201,21 +201,12 @@ function createDriveInfoPill(summaryData, isLive) {
   const currentDrive = drives.current;
   
   // Extract drive information
-  const playCount = currentDrive?.plays || 0;
+  const teamAbbr = currentDrive?.team?.abbreviation || 'Team';
   const yards = currentDrive?.yards || 0;
   const timeElapsed = currentDrive?.timeElapsed?.displayValue || currentDrive?.displayValue;
   
-  // Get current down and distance from summary
-  const situation = summaryData?.situation;
-  const downDistance = situation?.downDistanceText || situation?.shortDownDistanceText;
-  const yardLine = situation?.yardLineText || situation?.possessionText;
-  
-  // Build drive description
-  const parts = [];
-  
-  if (playCount > 0) {
-    parts.push(`${playCount}-play`);
-  }
+  // Build drive description: TEAM - yards - time
+  const parts = [teamAbbr]; // Start with team abbreviation
   
   if (yards !== 0) {
     parts.push(`${yards} yds`);
@@ -225,17 +216,9 @@ function createDriveInfoPill(summaryData, isLive) {
     parts.push(timeElapsed);
   }
   
-  // Add down & distance and field position
-  if (downDistance || yardLine) {
-    const position = [downDistance, yardLine].filter(Boolean).join(' at ');
-    if (position) {
-      parts.push(position);
-    }
-  }
+  if (parts.length === 1) return null; // Only team name, no drive data
   
-  if (parts.length === 0) return null;
-  
-  const driveText = parts.join(' – ');
+  const driveText = parts.join(' - ');
   
   return el('div', { class: 'drive-info-pill' }, driveText);
 }
@@ -254,20 +237,62 @@ function createFootballField(comp, homeColor, awayColor, gameState, summaryData)
   const homeAbbr = home?.team?.abbreviation;
   const awayAbbr = away?.team?.abbreviation;
   
-  // Situation data comes from summary API
-  const sit = summaryData?.situation;
   const stat = comp?.status;
   const state = gameState || stat?.type?.state;
   
-  // Debug logging for troubleshooting
-  if (state === 'in' && !sit) {
-    console.warn('Football field: Live game but no situation data available', {
-      homeAbbr,
-      awayAbbr,
-      hasSummaryData: !!summaryData,
-      situationKeys: summaryData ? Object.keys(summaryData) : []
-    });
+  // Get situation data from the most recent play in drives
+  let sit = summaryData?.situation; // Try situation first
+  
+  // If no situation, fall back to play-by-play data from drives
+  if (!sit && summaryData?.drives) {
+    const drives = summaryData.drives;
+    const currentDrive = drives?.current;
+    
+    // Get the most recent play
+    let latestPlay = null;
+    
+    if (currentDrive && currentDrive.plays && currentDrive.plays.length > 0) {
+      // Get last play from current drive
+      latestPlay = currentDrive.plays[currentDrive.plays.length - 1];
+    } else if (drives.previous && drives.previous.length > 0) {
+      // Get last play from most recent completed drive
+      const lastDrive = drives.previous[drives.previous.length - 1];
+      if (lastDrive.plays && lastDrive.plays.length > 0) {
+        latestPlay = lastDrive.plays[lastDrive.plays.length - 1];
+      }
+    }
+    
+    // Construct situation object from play data
+    if (latestPlay && latestPlay.end) {
+      const possTeam = currentDrive?.team?.abbreviation || latestPlay.end.team?.abbreviation;
+      const yardLine = latestPlay.end.yardLine;
+      
+      // Build proper yardLineText with team abbreviation
+      let yardLineText = null;
+      if (yardLine && possTeam) {
+        yardLineText = `${possTeam} ${yardLine}`;
+      }
+      
+      sit = {
+        possession: possTeam,
+        downDistanceText: latestPlay.end.shortDownDistanceText || latestPlay.end.downDistanceText,
+        yardLineText: yardLineText,
+        yardLineNumber: yardLine, // Store the numeric value
+        possessionText: latestPlay.end.possessionText
+      };
+      
+      console.log('✅ Built situation from play-by-play:', sit);
+    }
   }
+  
+  // Debug logging
+  console.log('🏈 createFootballField called:', {
+    state,
+    hasSummaryData: !!summaryData,
+    hasSituation: !!sit,
+    situation: sit,
+    hasDrives: !!summaryData?.drives
+  });
   
   // Show field for pre-game and live games, but not for final games
   if (state === 'post') return null;
@@ -292,26 +317,35 @@ function createFootballField(comp, homeColor, awayColor, gameState, summaryData)
   fieldContainer.appendChild(homeEndzone);
   fieldContainer.appendChild(awayEndzone);
   
-  // Add yard line markers (numbers at each 10-yard line)
+  // Add yard line markers (numbers at each 10-yard line) - top and bottom
   // Positions correspond to yard lines: 10, 20, 30, 40, 50, 40, 30, 20, 10
   const yardMarkers = [
     { position: 18, label: '< 10' },   // Home 10
     { position: 26, label: '< 20' },   // Home 20
     { position: 34, label: '< 30' },   // Home 30
     { position: 42, label: '< 40' },   // Home 40
-    { position: 50, label: '50' },   // 50 yard line
+    { position: 50, label: '50' },     // 50 yard line
     { position: 58, label: '40 >' },   // Away 40
     { position: 66, label: '30 >' },   // Away 30
     { position: 74, label: '20 >' },   // Away 20
     { position: 82, label: '10 >' },   // Away 10
   ];
   
+  // Add markers at top and bottom
   yardMarkers.forEach(({ position, label }) => {
-    const marker = el('div', { 
-      class: 'yard-marker',
+    // Top marker
+    const markerTop = el('div', { 
+      class: 'yard-marker top',
       style: `left: ${position}%;`
     }, label);
-    fieldContainer.appendChild(marker);
+    fieldContainer.appendChild(markerTop);
+    
+    // Bottom marker
+    const markerBottom = el('div', { 
+      class: 'yard-marker bottom',
+      style: `left: ${position}%;`
+    }, label);
+    fieldContainer.appendChild(markerBottom);
   });
   
   // Add team labels at endzones
@@ -321,7 +355,31 @@ function createFootballField(comp, homeColor, awayColor, gameState, summaryData)
   );
   
   // Helper function to parse yard line and convert to field position percentage
-  const parseYardLine = (yardLineText) => {
+  const parseYardLine = (yardLineText, yardLineNumber = null, possTeam = null) => {
+    // If we have a numeric yard line directly from play data, use it
+    if (typeof yardLineNumber === 'number' && possTeam) {
+      // yardLineNumber is typically 0-100 where 0 is own goal line, 50 is midfield
+      // Determine which direction based on possession
+      let fieldPosition;
+      const isPossHome = possTeam === homeAbbr;
+      
+      if (isPossHome) {
+        // Home team: their 0 = left side (10%), their 100 = right side (90%)
+        fieldPosition = yardLineNumber;
+      } else {
+        // Away team: their 0 = right side (90%), their 100 = left side (10%)
+        fieldPosition = 100 - yardLineNumber;
+      }
+      
+      // Convert to percentage accounting for 10% endzones on each side
+      const percentage = 10 + (fieldPosition * 0.8);
+      console.log('📍 Parsed yard line from number:', { yardLineNumber, possTeam, fieldPosition, percentage: `${percentage.toFixed(1)}%` });
+      return percentage;
+    }
+    
+    // Otherwise parse from text like "CIN 25" or "CHI 40"
+    if (!yardLineText) return null;
+    
     const yardMatch = yardLineText.match(/\b([A-Z]{2,3})\s+(\d{1,2})\b/);
     if (!yardMatch) return null;
     
@@ -338,16 +396,27 @@ function createFootballField(comp, homeColor, awayColor, gameState, summaryData)
     }
     
     // Convert to percentage accounting for 10% endzones on each side
-    return 10 + (fieldPosition * 0.8); // Map 0-100 yards to 10%-90% of container
+    const percentage = 10 + (fieldPosition * 0.8);
+    console.log('📍 Parsed yard line from text:', { yardLineText, yardTeam, yardLine, fieldPosition, percentage: `${percentage.toFixed(1)}%` });
+    return percentage;
   };
   
   // If game is live, add ball position and drive progress
   if (state === 'in' && sit) {
     const possAbbr = sit?.possession;
     
-    // Parse current yard line (e.g., "MIA 35", "ATL 50")
+    // Parse current yard line - try numeric first, then text
     const yardLineText = sit?.yardLineText || sit?.yardLine?.text || '';
-    const ballPosition = parseYardLine(yardLineText);
+    const yardLineNumber = sit?.yardLineNumber || sit?.yardLine || null; // Numeric yard line from play data
+    const ballPosition = parseYardLine(yardLineText, yardLineNumber, possAbbr);
+    
+    console.log('🎯 Ball position calculation:', {
+      possAbbr,
+      yardLineText,
+      yardLineNumber,
+      ballPosition: ballPosition !== null ? `${ballPosition.toFixed(1)}%` : 'null',
+      sit
+    });
     
     if (ballPosition !== null) {
       // Determine possession and drive color
@@ -368,32 +437,42 @@ function createFootballField(comp, homeColor, awayColor, gameState, summaryData)
       if (currentDrive && currentDrive.start) {
         const startYardLine = currentDrive.start.yardLine;
         const startText = currentDrive.start.text || '';
+        const startTeam = currentDrive.team?.abbreviation || possAbbr;
         
-        // Try to parse start position
-        if (startText) {
-          driveStartPosition = parseYardLine(startText);
-        } else if (typeof startYardLine === 'number') {
-          // If we have a numeric yard line (0-100), convert it
-          driveStartPosition = 10 + (startYardLine * 0.8);
-        }
+        // Try to parse start position with numeric yard line first
+        driveStartPosition = parseYardLine(startText, startYardLine, startTeam);
+        
+        console.log('🏁 Drive start:', {
+          startText,
+          startYardLine,
+          startTeam,
+          driveStartPosition: driveStartPosition !== null ? `${driveStartPosition.toFixed(1)}%` : 'null'
+        });
       }
       
       // If no drive start, default to team's own goal line
       if (driveStartPosition === null) {
         driveStartPosition = isPossHome ? 10 : 90; // Start at own endzone
+        console.log('🏁 Using default drive start:', `${driveStartPosition}%`);
       }
       
-      // Add drive progress line from start to current position
+      // Add drive progress line from start to current position (full line, not just segment)
       const driveLineEl = el('div', {
         class: 'drive-line',
         style: `
           left: ${Math.min(driveStartPosition, ballPosition)}%;
           width: ${Math.abs(ballPosition - driveStartPosition)}%;
-          background: ${driveColor};
         `
       });
       
       fieldContainer.appendChild(driveLineEl);
+      
+      console.log('🏁 Drive line created:', {
+        start: `${driveStartPosition.toFixed(1)}%`,
+        current: `${ballPosition.toFixed(1)}%`,
+        width: `${Math.abs(ballPosition - driveStartPosition).toFixed(1)}%`,
+        direction: driveStartPosition < ballPosition ? 'forward →' : '← backward'
+      });
       
       // Add ball marker with football icon
       const ballMarker = el('div', {
@@ -401,14 +480,25 @@ function createFootballField(comp, homeColor, awayColor, gameState, summaryData)
         style: `left: ${ballPosition}%;`
       }, '🏈');
       
+      console.log('🏈 Creating ball marker:', {
+        ballMarker,
+        ballPosition: `${ballPosition}%`,
+        style: ballMarker.getAttribute('style'),
+        class: ballMarker.getAttribute('class')
+      });
+      
       fieldContainer.appendChild(ballMarker);
+      
+      console.log('🏈 Ball marker appended. Field container children:', fieldContainer.children.length);
       
       // Debug: Confirm ball marker was added
       console.log('✅ Football field: Ball marker added', {
         team: possAbbr,
         yardLine: yardLineText,
         position: `${ballPosition.toFixed(1)}%`,
-        direction: isPossHome ? 'home→away' : 'away→home'
+        direction: isPossHome ? 'home→away' : 'away→home',
+        driveLineStyle: driveLineEl.getAttribute('style'),
+        ballMarkerStyle: ballMarker.getAttribute('style')
       });
       
       // Add field info
@@ -518,14 +608,27 @@ function teamBlock(c, { side, hasBall, isHome } = { side: 'away', hasBall: false
   const score = c?.score ?? '';
   const rec = c?.records?.[0]?.summary || '';
   
-  // Build abbreviation display with icons
+  // Build abbreviation display with icons - position based on side
   let abbrDisplay = abbr;
-  if (hasBall && isHome) {
-    abbrDisplay = `🏈 🏠 ${abbr}`;
-  } else if (hasBall) {
-    abbrDisplay = `🏈 ${abbr}`;
-  } else if (isHome) {
-    abbrDisplay = `🏠 ${abbr}`;
+  
+  if (side === 'away') {
+    // Away team: icons on the RIGHT
+    if (hasBall && isHome) {
+      abbrDisplay = `${abbr} 🏠 🏈`;
+    } else if (hasBall) {
+      abbrDisplay = `${abbr} 🏈`;
+    } else if (isHome) {
+      abbrDisplay = `${abbr} 🏠`;
+    }
+  } else {
+    // Home team: icons on the LEFT
+    if (hasBall && isHome) {
+      abbrDisplay = `🏈 🏠 ${abbr}`;
+    } else if (hasBall) {
+      abbrDisplay = `🏈 ${abbr}`;
+    } else if (isHome) {
+      abbrDisplay = `🏠 ${abbr}`;
+    }
   }
   
   return el('div', { class: `team-col ${side}` },
@@ -652,22 +755,23 @@ function gameCard(evt) {
     if (e.target.closest('a, button, .game-info-tabs, .win-probability, .details-grid')) return;
     const open = card.classList.toggle('expanded');
     
-    // Fetch summary data if not cached yet - MUST await before creating field
-    if (open && !summaryDataCache) {
-      try {
-        const res = await fetch(ESPN_SUMMARY(eventId));
-        if (res.ok) {
-          summaryDataCache = await res.json();
-        }
-      } catch (err) {
-        console.warn('Could not fetch summary data:', err);
-      }
-    }
-    
-    // Handle football field - now summaryDataCache will be populated
+    // Handle football field
     let field = card.querySelector('.football-field');
     
     if (open && !field) {
+      // Fetch summary data if not cached yet - MUST await before creating field
+      if (!summaryDataCache) {
+        try {
+          const res = await fetch(ESPN_SUMMARY(eventId));
+          if (res.ok) {
+            summaryDataCache = await res.json();
+            console.log('✅ Summary data fetched for field:', eventId, summaryDataCache?.situation);
+          }
+        } catch (err) {
+          console.warn('Could not fetch summary data:', err);
+        }
+      }
+      
       // Create field with fully loaded summary data
       field = createFootballField(comp, homeC, awayC, state, summaryDataCache);
       
@@ -866,6 +970,9 @@ async function buildDetails(evt, summaryDataCache = null) {
       const homeColor = colorHex(home?.team?.color) || '#222';
       const awayColor = colorHex(away?.team?.color) || '#222';
       
+      // Get game status for progress calculation
+      const gameStatus = comp?.status || evt?.status;
+      
       winProbGraph = renderWinProbabilityGraph(
         sum.winprobability,
         sum.drives,
@@ -874,7 +981,8 @@ async function buildDetails(evt, summaryDataCache = null) {
         home?.team?.logos?.[0]?.href || home?.team?.logo,
         away?.team?.logos?.[0]?.href || away?.team?.logo,
         homeColor,
-        awayColor
+        awayColor,
+        gameStatus
       );
     }
   } catch (e) {
@@ -1293,15 +1401,35 @@ function renderDrivesTab(summaryData) {
     return el('div', { class: 'info-row' }, 'No drive data available');
   }
   
-  const allDrives = [...previousDrives];
+  // Build drives list - mark the last drive as current if it matches current drive
+  const allDrives = previousDrives.map((drive, index) => {
+    // Check if this is actually the current drive by comparing some properties
+    const isLastDrive = index === previousDrives.length - 1;
+    const matchesCurrent = currentDrive && 
+                          drive.team?.id === currentDrive.team?.id &&
+                          drive.plays?.length === currentDrive.plays?.length;
+    
+    if (isLastDrive && matchesCurrent) {
+      // This is the current drive, mark it as such
+      return {
+        ...drive,
+        isCurrent: true,
+        result: drive.result || 'In Progress'
+      };
+    }
+    return drive;
+  });
   
-  // Add current drive if it exists
+  // Only add current drive if it's not already in the list
   if (currentDrive) {
-    allDrives.push({
-      ...currentDrive,
-      isCurrent: true,
-      result: 'In Progress'
-    });
+    const alreadyIncluded = allDrives.some(d => d.isCurrent);
+    if (!alreadyIncluded) {
+      allDrives.push({
+        ...currentDrive,
+        isCurrent: true,
+        result: 'In Progress'
+      });
+    }
   }
   
   const driveElements = allDrives.map((drive, index) => {
@@ -1406,8 +1534,44 @@ function renderGameStatsTab(summaryData, homeAbbr, awayAbbr) {
 }
 
 /* ------------------------- Win Probability Graph ------------------------- */
-function renderWinProbabilityGraph(winProbData, drivesData, homeAbbr, awayAbbr, homeLogo, awayLogo, homeColor, awayColor) {
+function renderWinProbabilityGraph(winProbData, drivesData, homeAbbr, awayAbbr, homeLogo, awayLogo, homeColor, awayColor, gameStatus = null) {
   if (!winProbData || winProbData.length === 0) return null;
+
+  // Calculate game progress percentage
+  let gameProgress = 100; // Default to 100% if game is over or can't determine
+  
+  if (gameStatus) {
+    const period = gameStatus?.period || 1;
+    const clock = gameStatus?.displayClock || '0:00';
+    
+    // Parse clock time (format: "MM:SS" or "M:SS")
+    const clockMatch = clock.match(/(\d+):(\d+)/);
+    let secondsRemaining = 0;
+    if (clockMatch) {
+      const minutes = parseInt(clockMatch[1], 10);
+      const seconds = parseInt(clockMatch[2], 10);
+      secondsRemaining = (minutes * 60) + seconds;
+    }
+    
+    // NFL game: 4 quarters × 15 minutes = 60 minutes total = 3600 seconds
+    const totalGameSeconds = 60 * 60; // 3600 seconds
+    const quarterSeconds = 15 * 60; // 900 seconds per quarter
+    
+    // Calculate elapsed time
+    const elapsedSeconds = ((period - 1) * quarterSeconds) + (quarterSeconds - secondsRemaining);
+    gameProgress = (elapsedSeconds / totalGameSeconds) * 100;
+    
+    // Clamp between 0-100
+    gameProgress = Math.max(0, Math.min(100, gameProgress));
+    
+    console.log('📊 Win Probability Game Progress:', {
+      period,
+      clock,
+      secondsRemaining,
+      elapsedSeconds,
+      gameProgress: `${gameProgress.toFixed(1)}%`
+    });
+  }
 
   // Build a map of playId -> play details for timing information
   const playMap = new Map();
@@ -1455,14 +1619,16 @@ function renderWinProbabilityGraph(winProbData, drivesData, homeAbbr, awayAbbr, 
   const height = 120; // pixels
   const padding = 0;
 
-  // Map data points to coordinates
+  // Map data points to coordinates, scaling X by game progress percentage
+  // This compresses the entire graph to fit within the completed portion of the game
   const points = winProbData.map((item, index) => {
-    const x = (index / (winProbData.length - 1)) * 100;
+    const normalizedX = (index / (winProbData.length - 1)) * 100;
+    const x = (normalizedX / 100) * gameProgress; // Scale X to game progress
     const y = 100 - (item.homeWinPercentage * 100); // Invert Y (0 = top, 100 = bottom)
     return { x, y, homeWinPct: item.homeWinPercentage };
   });
 
-  // Create SVG path string
+  // Create SVG path string - all points compressed to game progress width
   const pathData = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
   
   // Create area fill paths - fill from line to 50% mark
@@ -1471,14 +1637,14 @@ function renderWinProbabilityGraph(winProbData, drivesData, homeAbbr, awayAbbr, 
   points.forEach(p => {
     homeAreaPath += `L ${p.x} ${Math.max(p.y, 50)} `;
   });
-  homeAreaPath += `L 100 50 Z`;
+  homeAreaPath += `L ${gameProgress} 50 Z`;
   
   // Away area: from 50% line up to the probability line (when away is winning)
   let awayAreaPath = `M 0 50 L ${points[0].x} ${points[0].y} `;
   points.forEach(p => {
     awayAreaPath += `L ${p.x} ${Math.min(p.y, 50)} `;
   });
-  awayAreaPath += `L 100 50 Z`;
+  awayAreaPath += `L ${gameProgress} 50 Z`;
 
   // Create SVG
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -1567,12 +1733,11 @@ function renderWinProbabilityGraph(winProbData, drivesData, homeAbbr, awayAbbr, 
   const chartContainer = el('div', { class: 'win-prob-chart' });
   chartContainer.appendChild(svg);
 
-  // Quarter labels (approximate)
+  // Quarter labels - Q2, Q3, Q4 (Q1 starts at 0 so it's implicit)
   const quarters = el('div', { class: 'win-prob-quarters' },
-    el('span', {}, 'Q1'),
-    el('span', {}, 'Q2'),
-    el('span', {}, 'Q3'),
-    el('span', {}, 'Q4')
+    el('span', { style: 'left: 25%;' }, 'Q2'),
+    el('span', { style: 'left: 50%;' }, 'Q3'),
+    el('span', { style: 'left: 75%;' }, 'Q4')
   );
 
   container.appendChild(header);
