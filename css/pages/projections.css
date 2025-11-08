@@ -1,0 +1,328 @@
+/* Projections Page Styles - Compact Table Layout */
+
+.filters-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  background: linear-gradient(135deg,
+    rgba(59, 130, 246, 0.15) 0%,
+    rgba(147, 51, 234, 0.15) 50%,
+    rgba(236, 72, 153, 0.15) 100%
+  );
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.filter-group {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.filter-group label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.filter-group select,
+.filter-group input[type="text"] {
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(4px);
+}
+
+.filter-group select:hover,
+.filter-group input[type="text"]:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.filter-group select:focus,
+.filter-group input[type="text"]:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(59, 130, 246, 0.5);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.filter-group select option {
+  background: rgba(20, 20, 40, 0.95);
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.filter-group input[type="text"] {
+  min-width: 200px;
+}
+
+.filter-group input[type="text"]::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.results-info {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+}
+
+/* Player Table */
+.proj-table {
+  background: linear-gradient(135deg, 
+    rgba(59, 130, 246, 0.08) 0%,
+    rgba(147, 51, 234, 0.08) 50%,
+    rgba(236, 72, 153, 0.08) 100%
+  );
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+}
+
+.proj-header-row,
+.proj-row {
+  display: grid;
+  grid-template-columns: 50px 50px 1fr 90px 70px;
+  gap: 10px;
+  padding: 8px 12px;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.proj-header-row {
+  background: linear-gradient(135deg,
+    rgba(30, 30, 50, 0.8) 0%,
+    rgba(20, 20, 40, 0.9) 100%
+  );
+  font-weight: 700;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding: 10px 12px;
+}
+
+.proj-row {
+  background: rgba(255, 255, 255, 0.02);
+  transition: background-color 0.15s ease;
+}
+
+.proj-row:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.proj-row:last-child {
+  border-bottom: none;
+}
+
+.proj-rank {
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-family: 'Rajdhani', sans-serif;
+  color: rgba(96, 165, 250, 0.9);
+  text-align: center;
+}
+
+.proj-pos {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.proj-player {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.proj-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  font-family: 'Rajdhani', sans-serif;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.proj-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.proj-stat .stat-value {
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: 'Rajdhani', sans-serif;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.proj-stat .stat-label {
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.proj-pts .stat-value {
+  color: rgba(96, 165, 250, 0.95);
+  font-size: 1.15rem;
+}
+
+/* Skeleton Loading */
+.skeleton-proj-card {
+  display: grid;
+  grid-template-columns: 50px 50px 1fr 90px 70px;
+  gap: 10px;
+  padding: 8px 12px;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.skeleton-line {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+  border-radius: 6px;
+  height: 20px;
+}
+
+.rank-skeleton {
+  width: 35px;
+  height: 20px;
+}
+
+.player-skeleton {
+  width: 100%;
+  height: 20px;
+}
+
+.stat-skeleton {
+  width: 50px;
+  height: 24px;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Messages */
+.no-results,
+.error-message {
+  padding: 40px 20px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.error-message {
+  color: rgba(239, 68, 68, 0.9);
+  background: rgba(220, 38, 38, 0.1);
+  border-color: rgba(220, 38, 38, 0.3);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .filters-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .filter-group {
+    width: 100%;
+  }
+  
+  .filter-group label {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .filter-group select,
+  .filter-group input[type="text"] {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .results-info {
+    text-align: center;
+  }
+  
+  .proj-header {
+    grid-template-columns: 50px 1fr;
+    gap: 12px;
+  }
+  
+  .proj-main-stat {
+    grid-column: 1 / -1;
+    margin-top: 8px;
+  }
+  
+  .proj-rank {
+    font-size: 1.2rem;
+  }
+  
+  .proj-name {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .filter-group {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .filter-group label {
+    width: 100%;
+  }
+  
+  .filter-group input[type="text"] {
+    min-width: 100%;
+  }
+  
+  .proj-card {
+    margin-bottom: 12px;
+  }
+  
+  .proj-header {
+    padding: 12px 16px;
+    grid-template-columns: 45px 1fr;
+  }
+  
+  .proj-stats {
+    padding: 12px 16px;
+    gap: 8px;
+  }
+}

@@ -25,6 +25,7 @@
   <link rel="stylesheet" href="css/pages/homepage.css">
   <link rel="stylesheet" href="css/pages/matchups.css">
   <link rel="stylesheet" href="css/pages/rosters.css">
+  <link rel="stylesheet" href="css/pages/projections.css">
   <link rel="stylesheet" href="css/pages/drafts.css">
   <link rel="stylesheet" href="css/pages/scoreboard.css">
   <link rel="stylesheet" href="css/pages/standings.css">
@@ -47,6 +48,7 @@
         <a href="#" data-route="home">Homepage</a>
         <a href="#" data-route="scoreboard">NFL Scoreboard</a>
         <a href="#" data-route="player-stats">Player Statistics</a>
+        <a href="#" data-route="projections">Player Projections</a>
         <a href="#" data-route="rosters">Rosters</a>
         <a href="#" data-route="drafts">Previous Drafts</a>
         <a href="#" data-route="matchups">Matchups</a>
@@ -81,6 +83,35 @@
                 <section id="player-stats" class="hidden">
                     <h2>Player Statistics</h2>
                     <div id="player-stats-root"></div>
+                </section>
+
+                <section id="projections" class="hidden">
+                    <h2>Player Projections</h2>
+                    <div class="filters-bar">
+                        <div class="filter-group">
+                            <label>Position: 
+                                <select id="position-filter">
+                                    <option value="all">All Positions</option>
+                                    <option value="QB">QB</option>
+                                    <option value="RB">RB</option>
+                                    <option value="WR">WR</option>
+                                    <option value="TE">TE</option>
+                                    <option value="K">K</option>
+                                </select>
+                            </label>
+                            <label>View: 
+                                <select id="projection-type">
+                                    <option value="next-week">Next Week</option>
+                                    <option value="rest-of-season">Rest of Season</option>
+                                </select>
+                            </label>
+                            <input type="text" id="search-player" placeholder="Search player...">
+                        </div>
+                        <div class="results-info">
+                            <span id="results-count">Loading...</span>
+                        </div>
+                    </div>
+                    <div id="projections-root"></div>
                 </section>
 
                 <section id="rosters" class="hidden">
