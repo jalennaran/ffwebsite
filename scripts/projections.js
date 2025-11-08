@@ -41,18 +41,104 @@ function createPlayerTableSkeleton(count = 20) {
   return table;
 }
 
+/* ----------------------- Name Corrections ----------------------- */
+
+// Map of real names to Sleeper display names
+const nameCorrections = {
+  'John Stafford': 'Matthew Stafford',
+  'Rayne Prescott': 'Dak Prescott',
+  'Joseph Flacco': 'Joe Flacco',
+  'Joshua Jacobs': 'Josh Jacobs',
+  'Michael Jones': 'Mac Jones',
+  'Cameron Ward' : 'Cam Ward',
+  'Jonathan McCarthy': 'JJ McCarthy',
+  'Joshua Downs': 'Josh Downs',
+  'Eugene Smith' : 'Geno Smith',
+  'Xavien Flowers' : 'Zay Flowers',
+  'Charles Robinson': "Wan'dale Robinson",
+  'Andrew McConkey' : 'Ladd McConkey',
+  'Jkaylin Dobbins' : 'J.K. Dobbins',
+  'Tamaurice Higgins' : 'Tee Higgins',
+  'Bennie Jennings' : 'Juaun Jennings',
+  'DeKaylin Metcalf' : 'DK Metcalf',
+  'Zachary Ertz' : 'Zach Ertz',
+  'Marquise Brown' : 'Hollywood Brown',
+  'Theodore Johnson' : 'Theo Johnson',
+  'Tyshun Samuel' : 'Deebo Samuel',
+  'Thomas Hockenson' : 'T.J. Hockenson',
+  'Nicholas Chubb': 'Nick Chubb',
+  'Cedarian Lamb' : 'CeeDee Lamb',
+  'Christopher Washington' : 'PJ Washington',
+  "Jo'Quavious Marks" : "Woody Marks",
+  'Robert Harvey' : 'RJ Harvey',
+  'Cartavious Bigsby' : 'Tank Bigsby',
+  'Cleveland Harris' : 'Tre Harris',
+  "ReMahn Davis" : 'Ray Davis',
+  'Vanchii Jefferson' : 'Van Jefferson',
+  'Coleridge Stroud' : 'C.J. Stroud',
+  'Cameron Skatteborg' : 'Cam Skattebo',
+ };
+
+function correctPlayerName(name) {
+  // Check if this name needs correction
+  if (nameCorrections[name]) {
+    return nameCorrections[name];
+  }
+  return name;
+}
+
 /* ----------------------- CSV Parsing ----------------------- */
+
+function parseCSVLine(line) {
+  const result = [];
+  let current = '';
+  let inQuotes = false;
+  
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    
+    if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === ',' && !inQuotes) {
+      result.push(current);
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  result.push(current);
+  
+  return result.map(val => val.trim());
+}
 
 function parseCSV(text) {
   const lines = text.trim().split('\n');
-  const headers = lines[0].split(',');
+  const headers = parseCSVLine(lines[0]);
   
   return lines.slice(1).map(line => {
-    const values = line.split(',');
+    const values = parseCSVLine(line);
     const player = {};
     headers.forEach((header, index) => {
       player[header.trim()] = values[index]?.trim() || '';
     });
+    
+    // Correct player names if needed
+    if (player.player_display_name) {
+      player.player_display_name = correctPlayerName(player.player_display_name);
+    }
+    if (player.player_name) {
+      player.player_name = correctPlayerName(player.player_name);
+    }
+    
+    // For rest of season, use ros_projected_points as the main value
+    if (player.ros_projected_points) {
+      player.display_points = player.ros_projected_points;
+      player.sort_points = player.avg_weekly_projection || player.ros_projected_points;
+    } else {
+      player.display_points = player.projected_points;
+      player.sort_points = player.projected_points;
+    }
+    
     return player;
   }).filter(p => p.player_name); // Filter out empty rows
 }
@@ -79,7 +165,11 @@ function getInjuryBadge(status) {
 }
 
 function renderPlayerRow(player, rank) {
-  const projectedPts = parseFloat(player.projected_points).toFixed(1);
+  // For ROS view, show total projected points; for next week, show weekly projection
+  const isROS = currentView === 'rest-of-season';
+  const projectedPts = parseFloat(player.display_points || 0).toFixed(1);
+  const ptsLabel = isROS ? 'total' : 'pts';
+  
   const avgLast3 = player.avg_last_3_games && player.avg_last_3_games !== '' 
     ? parseFloat(player.avg_last_3_games).toFixed(1) 
     : '-';
@@ -100,7 +190,7 @@ function renderPlayerRow(player, rank) {
     </div>
     <div class="proj-stat proj-pts">
       <span class="stat-value">${projectedPts}</span>
-      <span class="stat-label">pts</span>
+      <span class="stat-label">${ptsLabel}</span>
     </div>
     <div class="proj-stat">
       <span class="stat-value">${avgLast3}</span>
@@ -125,12 +215,15 @@ function displayProjections(data) {
   const table = el('div', { class: 'proj-table' });
   
   // Add header
+  const isROS = currentView === 'rest-of-season';
+  const projectedLabel = isROS ? 'ROS Total' : 'Projected';
+  
   const header = el('div', { class: 'proj-header-row' });
   header.innerHTML = `
     <div class="proj-rank">Rank</div>
     <div class="proj-pos">Pos</div>
     <div class="proj-player">Player</div>
-    <div class="proj-stat proj-pts">Projected</div>
+    <div class="proj-stat proj-pts">${projectedLabel}</div>
     <div class="proj-stat">Avg L3</div>
   `;
   table.appendChild(header);
@@ -193,9 +286,11 @@ async function loadProjections() {
     const text = await response.text();
     allProjections = parseCSV(text);
     
-    // Sort by projected points descending
+    // Sort by sort_points (which is avg weekly for ROS, or projected for next week)
     allProjections.sort((a, b) => {
-      return parseFloat(b.projected_points) - parseFloat(a.projected_points);
+      const aPoints = parseFloat(a.sort_points) || 0;
+      const bPoints = parseFloat(b.sort_points) || 0;
+      return bPoints - aPoints;
     });
     
     displayProjections(allProjections);
