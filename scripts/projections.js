@@ -77,6 +77,7 @@ const nameCorrections = {
   'Vanchii Jefferson' : 'Van Jefferson',
   'Coleridge Stroud' : 'C.J. Stroud',
   'Cameron Skatteborg' : 'Cam Skattebo',
+  "Mar'Keise Irving" : "Bucky Irving",
  };
 
 function correctPlayerName(name) {
